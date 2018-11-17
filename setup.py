@@ -22,7 +22,7 @@ def get_version():
 setup(
     name='triex',
     version=get_version(),
-    description='Simple utility to enable/disable and hide/show stock macOS applications.',
+    description='A tool to generate semi-minimized regular expression alternations.',
     long_description=get_long_description(),
     url='https://bitbucket.org/lojoja/triex',
     author='lojoja',
