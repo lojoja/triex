@@ -38,6 +38,6 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     packages=['triex'],
-    install_requires=['click>=6.0'],
+    install_requires=['click>=7.0'],
     entry_points={'console_scripts': ['triex=triex.cli:cli']},
 )
