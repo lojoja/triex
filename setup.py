@@ -24,7 +24,7 @@ setup(
     version=get_version(),
     description='A tool to generate semi-minimized regular expression alternations.',
     long_description=get_long_description(),
-    url='https://bitbucket.org/lojoja/triex',
+    url='https://github.com/lojoja/triex',
     author='lojoja',
     author_email='github@lojoja.com',
     license='MIT',
