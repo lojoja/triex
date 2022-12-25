@@ -1,2 +1,0 @@
-include LICENSE README.md
-global-exclude *.py[cod] .DS_Store
