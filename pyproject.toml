@@ -54,6 +54,7 @@ exclude_lines = [
   'def __repr__',
   'if log:'
 ]
+show_missing = true
 
 [tool.pylint.main]
 ignore-paths = ['.venv']
