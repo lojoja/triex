@@ -1,189 +1,172 @@
-__version__ = '1.0.1'
+"""
+A tool to generate semi-minimized regular expression alternations.
+"""
+from typing import Any
 
 
-class DataError(TypeError):
-    """
-    DataError Exception.
-
-    Raised when data cannot be inserted in the trie.
-
-    Args:
-        data: The data that caused the error.
-    """
-
-    def __init__(self, data):
-        self.message = 'Cannot add data type {}'.format(type(data))
-        super(DataError, self).__init__(self.message)
+TrieNode = dict[str, "TrieNode"]
+DataValue = int | float | str
+DataInput = list[DataValue] | DataValue | None
 
 
-class Trie(object):
-    """
-    Trie data structure.
+class Trie:
+    """Trie data structure.
 
     Create and manipulate a trie representation of one or more strings. Duplicates are pruned before insertion,
     and members are cached to allow insertion without re-generating the entire trie.
+
+    Args:
+        data: A value or `list` of values to be added to the trie. Values may be a `str`, `int` and/or `float`.
+
+    Attributes:
+        silent: Indicates whether invalid values should be skipped silently during insertion or raise an Exception.
     """
 
-    def __init__(self, data=None, silent=True):
-        """
-        Initialize trie structure.
-
-        Args:
-            data: An optional value or list of values to be added to the trie. Values may be a string, int and/or float.
-            silent: An optional boolean indicating whether invalid data should be skipped silently during insertion
-                or raise an Exception.
-        """
-        self._trie = {}
-        self._invalid = []
-        self._members = []
+    def __init__(self, data: DataInput = None, silent: bool = True):
+        self._structure: TrieNode = {}
+        self._invalid: list[Any] = []
+        self._members: list[str] = []
         self.silent = silent
 
         self.add(data)
 
-    def add(self, data):
+    def add(self, data: DataInput) -> None:
         """
-        Add data to the trie.
+        Add values to the trie
 
         Args:
-            data: An optional value or list of values to be added to the trie. Values may be a string, int and/or float.
+            data: A value or list of values to add to the trie.
         """
-        if not isinstance(data, list):
+        if data is None:
+            data = []
+        elif not isinstance(data, list):
             data = [data]
 
-        data = self._prune(self._coerce(data))
-        self._insert(data)
+        processed_data = self._prune(self._coerce(data))
+        self._insert(processed_data)
 
     @property
-    def invalid(self):
-        """
-        A list of values that could not be added to the trie. This list will be empty if `self.silent` is `False`.
-        """
-        return self._invalid
+    def invalid(self) -> list[Any]:
+        """A sorted list of values that could not be added to the trie."""
+        return sorted(self._invalid)
 
     @property
-    def members(self):
-        """
-        A list of all values in the trie.
-        """
-        return self._members
+    def members(self) -> list[str]:
+        """A sorted list of values added to the trie."""
+        return sorted(self._members)
 
-    def to_regex(self, boundary=False, parenthesis=False, capturing=False):
-        """
-        Convert the trie to a regular expression.
+    @property
+    def structure(self) -> TrieNode:
+        """The trie data structure."""
+        return self._structure
+
+    def to_regex(self, boundary: bool = False, capturing: bool | None = None) -> str:
+        """Convert the trie to a regular expression.
 
         Args:
-            boundary: An optional boolean indicating whether to include surrounding boundary '\b' tokens.
-            parenthesis: An optional boolean indicating whether to surround the entire pattern in parenthesis.
-            capturing: An optional boolean indicating whether the surrounding parenthesis represent a capturing or
-                non-capturing group. This value is ignored if `parenthesis` is `False`.
+            boundary: Indicates whether the regex should be surrounded by boundary ('\b') tokens.
+            capturing: Indicates whether the pattern should be in a capturing (`True`) or non-capturing (`False`) group.
+                       When value is `None` the pattern will not be grouped unless `boundary` is `True` in which case it
+                       will be made a non-capturing group so the boundary tokens apply to all items in the pattern.
         """
-        return Regex(self._trie).pattern(
-            boundary=boundary, parenthesis=parenthesis, capturing=capturing
-        )
+        return Regex(self, boundary=boundary, capturing=capturing).pattern
 
-    def _coerce(self, data):
-        """
-        Coerce raw values to string objects.
+    def _coerce(self, data: list[DataValue]) -> list[str]:
+        """Coerce raw values to string objects.
 
-        If a value cannot be coerced and `self.silent` is `True`, the value will be added to `self._invalid` and
-        processing will continue. If `self.silent` is `False`, processing stops and raises an exception.
+        If `self.silent` is `True` processing will continue after encountering an invalid value, otherwise processing
+        stops and raises an exception.
 
         Args:
             data: A list of values.
 
         Raises:
-            DataError: When a value is not a string, int, or float.
+            TypeError: When a value could not be coerced to a string.
         """
         coerced = []
 
         for value in data:
             if not isinstance(value, (str, float, int)):
-                if not self.silent:
-                    raise DataError(value)
                 self._invalid.append(value)
+                if not self.silent:
+                    raise TypeError(f'Cannot add value "{value}" with data type "{type(value)}" to trie')
             else:
                 coerced.append(str(value))
 
         return coerced
 
-    def _insert(self, data):
-        """
-        Insert values in the trie and add to `self._members`.
+    def _insert(self, data: list[str]) -> None:
+        """Insert values in the trie.
 
         Args:
             data: A list of string objects.
         """
-        for string in data:
-            node = self._trie
+        for value in data:
+            node = self._structure
 
-            for char in string:
-                try:
-                    node[char]
-                except KeyError:
+            for char in value:
+                if not char in node:
                     node[char] = {}
 
                 node = node[char]
 
-            node[''] = None
-            self._members.append(string)
+            node[""] = {}
+            self._members.append(value)
 
-    def _prune(self, data):
-        """
-        Reduce data to unique values.
+    def _prune(self, data: list[str]) -> list[str]:
+        """Prune duplicate values from the input data and values in `self.members`.
 
         Args:
             data: A list of values.
         """
-        data = set(data)
+        data = list(set(data))
         return [v for v in data if v not in self.members]
 
 
-class Regex(object):
+class Regex:  # pylint: disable=r0903
+    """A regular expression generated from a trie data structure.
+
+    Args:
+        trie: A `Trie` data object.
+
+    Attributes:
+        boundary: Indicates whether the regex should be surrounded by boundary ('\b') tokens.
+        capturing: Indicates whether the pattern should be in a capturing (`True`) or non-capturing (`False`) group.
+                   When value is `None` the pattern will not be grouped unless `boundary` is `True` in which case it
+                   will be made a non-capturing group so the boundary tokens apply to all items in the pattern.
+        _pattern: The regex pattern built from the trie.
     """
-    Regular Expression.
 
-    A regular expression generated from a trie data structure.
-    """
+    def __init__(self, trie: Trie, boundary: bool = False, capturing: bool | None = None):
+        self.boundary = boundary
 
-    def __init__(self, trie):
+        if boundary and capturing is None:
+            capturing = False
+
+        self.capturing = capturing
+
+        self._pattern = self._construct(trie.structure, is_outer=True)
+
+    @property
+    def pattern(self) -> str:
+        """A regex pattern generated from the Trie."""
+        formatted_pattern = self._pattern
+
+        if self.capturing is not None:
+            control_chars = "" if self.capturing else "?:"
+            formatted_pattern = rf"({control_chars}{formatted_pattern})"
+
+        if self.boundary:
+            formatted_pattern = rf"\b{formatted_pattern}\b"
+
+        return formatted_pattern
+
+    def _construct(self, data: TrieNode, is_outer=False) -> str:
         """
-        Initialize regular expression.
+        Construct a regular expression from a trie structure.
 
         Args:
-            trie: A `Trie` object.
-        """
-        self._pattern = self._construct(trie, is_outer=True)
-
-    def pattern(self, boundary=False, parenthesis=False, capturing=False):
-        """
-        A regex pattern generated from the Trie.
-
-        Args:
-            boundary: An optional boolean indicating whether to include surrounding boundary '\b' tokens.
-            parenthesis: An optional boolean indicating whether to surround the entire pattern in parenthesis.
-            capturing: An optional boolean indicating whether the surrounding parenthesis represent a capturing or
-                non-capturing group. If this value is `True`, `parenthesis` will be set to `True` automatically.
-        """
-        pattern = self._pattern
-        parenthesis = True if capturing else parenthesis
-
-        if parenthesis:
-            pattern = r'({0}{1})'.format('?:' if capturing else '', pattern)
-
-        if boundary:
-            pattern = r'\b{}\b'.format(pattern)
-
-        return pattern
-
-    def _construct(self, data, is_outer=False):
-        """
-        Construct a regular expression from a trie.
-
-        Recursively build a regular expression by walking a trie data structure, grouping alternates and character
-        classes.
-
-        Args:
-            data: A `Trie` object to construct the regex from.
+            data: A trie data structure.
             is_outer: Whether the method call is the outermost in the recursive stack.
         """
         node = data
@@ -192,16 +175,17 @@ class Regex(object):
         char_class = []
         optional = False
 
-        if '' in node and len(node) == 1:
-            return None
+        if "" in node and len(node) == 1:
+            return ""
 
         for child_node in sorted(node):
-            if isinstance(node[child_node], dict):
+            if len(node[child_node]) > 0:
                 children = self._construct(node[child_node])
-                try:
+
+                if children:
                     child_node = self._escape(child_node, False)
-                    alternates.append(child_node + children)
-                except TypeError:
+                    alternates.append(f"{child_node}{children}")
+                else:
                     child_node = self._escape(child_node, True)
                     char_class.append(child_node)
             else:
@@ -220,59 +204,55 @@ class Regex(object):
 
         return alternates
 
-    def _escape(self, char, char_class):
-        """
-        Escape special characters.
+    def _escape(self, char: str, char_class: bool) -> str:
+        """Escape regex control characters.
 
         Args:
             char: The character to escape.
-            char_class: A boolean flag indicating whether `character` is part of a character class.
+            char_class: Whether `character` is part of a character class.
         """
-        special_chars = r'^-]\\' if char_class else r'.^$*+?()[{\|'
+        control_chars = r"^-]\\" if char_class else r".^$*+?()[{\|"
 
-        if char in special_chars:
-            return r'\\{}'.format(char)
+        if char in control_chars:
+            return rf"\{char}".format(char)
 
         return char
 
-    def _make_alternates(self, strings, is_outer=False):
-        """
-        Make regex alternations (e.g., foo|bar|baz)
+    def _make_alternates(self, values: list[str], is_outer: bool = False) -> str:
+        """Make regex alternation (e.g., foo|bar|baz).
 
         Args:
-            strings: A list of alternate string objects.
-            is_outer: Whether `strings` are the outermost in the pattern. Determine whether the alternates are
-                surrounded by parenthesis (when `False`) or not (when `True`).
+            values: A list of alternate values
+            is_outer: Whether `values` are the outermost in the pattern. Inner alternations are placed in non-capturing
+                      groups.
         """
-        if len(strings) == 1:
-            return strings[0]
+        if len(values) == 1:
+            return values[0]
 
-        if is_outer:
-            return r'{}'.format(r'|'.join(strings))
-        else:
-            return r'(?:{})'.format(r'|'.join(strings))
+        alternates = r"|".join(values)
 
-    def _make_char_class(self, string):
-        """
-        Make regex character class (e.g., [AZ123])
+        if not is_outer:
+            alternates = rf"(?:{alternates})"
+
+        return alternates
+
+    def _make_char_class(self, values: list[str]) -> str:
+        """Make regex character class (e.g., [AZ123]).
 
         Args:
-            string: A string object with 1 or more characters.
+            values: A list of characters
         """
-        if len(string) == 1:
-            return string[0]
+        if len(values) == 1:
+            return values[0]
 
-        return r'[{}]'.format(r''.join(string))
+        chars = "".join(values)
+        return rf"[{chars}]"
 
-    def _make_optional(self, string, count):
-        """
-        Make character class or alternation optional.
+    def _make_optional(self, value, count) -> str:
+        """Make character class or alternation optional.
 
         Args:
-            string: A complete alternation pattern.
+            value: The partial regex pattern value
             count: The number of non-character class alternates.
         """
-        if count < 1:
-            return r'{}?'.format(string)
-        else:
-            return r'(?:{})?'.format(string)
+        return rf"{value}?" if count < 1 else rf"(?:{value})?"
