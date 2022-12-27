@@ -69,6 +69,6 @@ venvPath = '.'
 venv = ['.venv']
 
 [tool.pytest.ini_options]
-addopts = '--cov'
+addopts = '--cov -s'
 filterwarnings = ['ignore:::.*pytest_cov*']
 testpaths = ['tests']
