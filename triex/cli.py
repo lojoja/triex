@@ -1,4 +1,5 @@
 import logging
+import pathlib
 from sys import stdin, stdout
 from typing import IO
 
@@ -96,3 +97,62 @@ def convert(
 
     logger.debug("Writing regex to %s" % out.name)
     click.echo(regex, file=out, color=False)
+
+
+@cli.command
+@click.option(
+    "--suffix",
+    "-s",
+    default="triex",
+    show_default=True,
+    help="The suffix to add to the output file names.",
+    type=str,
+)
+@click.argument(
+    "files",
+    nargs=-1,
+    type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
+)
+def batch(
+    suffix: str,
+    boundary: bool,
+    delimiter: str,
+    capture: bool | None,
+    debug: bool,  # pyright: ignore reportUnusedVariable
+    files: tuple[pathlib.Path],
+) -> str | None:  # pylint: disable=r0913
+    """Batch convert file contents to patterns.
+
+    Patterns will be written to a separate files with the --prefix value inserted before the extension:
+
+    source.txt > source.<suffix>.txt
+    """
+
+    logger.debug("Converting %s files" % len(files))
+
+    for file in files:
+        logger.info("Converting %s" % file.name)
+
+        raw_data = file.read_text().rstrip()
+
+        if not raw_data:
+            logger.warning("File is empty")
+            continue
+
+        data = raw_data.split(delimiter) if delimiter else raw_data.splitlines()
+
+        logger.debug("Generating trie")
+        trie = Trie(data)  # type: ignore
+
+        logger.debug("Trie created with %s value(s) and %s invalid value(s)" % (len(trie.members), len(trie.invalid)))
+
+        if trie.invalid:
+            logger.warning("%s invalid values skipped (%s)" % (len(trie.invalid), ",".join(trie.invalid)))
+
+        logger.debug("Generating regex")
+        regex = trie.to_regex(boundary, capture)
+
+        out = file.with_name(f"{file.stem}.{suffix}{file.suffix}")
+
+        logger.debug("Writing regex to %s" % out.name)
+        out.write_text(f"{regex}\n")
