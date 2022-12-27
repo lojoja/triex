@@ -22,9 +22,9 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = '^3.10'
-click = '^8'
-clickext = {version = '^0', source = "lojoja"}
+python = '^3.10.0'
+click = '^8.0.0'
+clickext = {version = '^0.1.1', source = "lojoja"}
 
 [tool.poetry.group.dev.dependencies]
 black = '^22.0.0'
