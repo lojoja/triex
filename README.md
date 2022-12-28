@@ -10,6 +10,21 @@ Given a list of `str`, `int`, and `float` values, triex constructs a trie data s
 * Python 3.10.x
 
 
+## Installation
+
+### Local
+
+```
+pip install --trusted-host=gitea.lojoja.com --extra-index-url=https://gitea.lojoja.com/api/packages/lojoja/pypi/simple triex
+```
+
+### Remote
+
+```
+pip install git+ssh://github.com/lojoja/triex@main
+```
+
+
 ## Usage
 
 ### As a Library
@@ -18,7 +33,7 @@ Given a list of `str`, `int`, and `float` values, triex constructs a trie data s
 >>> from triex import Trie
 >>> t = Trie(['foo', 'foobar', 'foobaz', 'bar', 'bat'])
 >>> t.to_regex()
->>> ba[rt]|foo(?:ba[rz])?
+ba[rt]|foo(?:ba[rz])?
 ```
 
 ### Command Line
@@ -26,7 +41,7 @@ Given a list of `str`, `int`, and `float` values, triex constructs a trie data s
 ```
 Usage: triex [OPTIONS] COMMAND [ARGS]...
 
-  Command line interface entry point.
+  A tool to generate semi-minimized regular expression alternations.
 
 Options:
   --version  Show the version and exit.
@@ -50,10 +65,19 @@ ba[rt]|foo(?:ba[rz])?
 ```
 
 Batch:
+
 ```
 > printf "foo\nbar" > words1.txt
 > printf "foo\nbaz" > words2.txt
 > triex batch *.txt
 Converting words1.txt
 Converting words2.txt
+> less -FX words1.txt
+bar|foo
+> less -FX words2.txt
+baz|foo
 ```
+
+## License
+
+triex is released under the [MIT License](./LICENSE)
