@@ -1,3 +1,5 @@
+# pylint: disable=c0114,c0116
+
 import pytest
 
 from triex import Trie

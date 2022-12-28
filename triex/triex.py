@@ -1,4 +1,6 @@
 """
+triex
+
 A tool to generate semi-minimized regular expression alternations.
 """
 from typing import Any

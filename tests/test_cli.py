@@ -1,3 +1,5 @@
+# pylint: disable=c0114,c0116
+
 import pathlib
 
 from click.testing import CliRunner
@@ -24,7 +26,13 @@ def files(tmp_path: pathlib.Path) -> dict[str, pathlib.Path]:
         (["-n"], "foo\nbar\n", "(?:bar|foo)\n", ""),
     ],
 )
-def test_convert(files: dict[str, pathlib.Path], args: list[str], content: str, output: str, error_message: str):
+def test_convert(
+    files: dict[str, pathlib.Path],  # pylint: disable=w0621
+    args: list[str],
+    content: str,
+    output: str,
+    error_message: str,
+):
     convert_args = ["convert", "-i", str(files["in"]), "-o", str(files["out"])]
     convert_args.extend(args)
 
@@ -63,7 +71,7 @@ def batch_files(tmp_path: pathlib.Path) -> dict[str, list[pathlib.Path]]:
     ],
 )
 def test_batch(
-    batch_files: dict[str, list[pathlib.Path]],
+    batch_files: dict[str, list[pathlib.Path]],  # pylint: disable=w0621
     args: list[str],
     content: list[str],
     output: list[str],

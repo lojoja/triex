@@ -1,3 +1,9 @@
+"""
+triex
+
+The command-line interface for triex
+"""
+
 import logging
 import pathlib
 from sys import stdin, stdout
@@ -24,7 +30,8 @@ logger = logging.getLogger(__name__)
             flag_value=True,
             default=False,
             help=(
-                'Enclose pattern in boundary tokens ("\\b"). A non-capturing group is added when neither -c or -n is passed.'
+                'Enclose pattern in boundary tokens ("\\b"). '
+                "A non-capturing group is added when neither -c or -n is passed."
             ),
         ),
         click.Option(
@@ -43,8 +50,8 @@ logger = logging.getLogger(__name__)
 )
 @click.version_option()
 def cli() -> None:
-    """Command line interface entry point."""
-    logger.debug("%s started" % __package__)
+    """A tool to generate semi-minimized regular expression alternations."""
+    logger.debug("%s started", __package__)
 
 
 @cli.command
@@ -63,14 +70,14 @@ def cli() -> None:
     help="The output file. [default: stdout]",
     type=click.File(mode="w"),
 )
-def convert(
+def convert(  # pylint: disable=r0913
     in_: IO,
     out: IO,
     boundary: bool,
     delimiter: str,
     capture: bool | None,
-    debug: bool,  # pyright: ignore reportUnusedVariable
-) -> str | None:  # pylint: disable=r0913
+    debug: bool,  # pyright: ignore reportUnusedVariable pylint: disable=w0613
+) -> str | None:
     """Convert input to a regex pattern."""
 
     logger.debug("Preparing input data")
@@ -87,15 +94,15 @@ def convert(
     logger.debug("Generating trie")
     trie = Trie(data)  # type: ignore
 
-    logger.debug("Trie created with %s value(s) and %s invalid value(s)" % (len(trie.members), len(trie.invalid)))
+    logger.debug("Trie created with %s value(s) and %s invalid value(s)", len(trie.members), len(trie.invalid))
 
     if trie.invalid:
-        logger.warning("%s invalid values skipped (%s)" % (len(trie.invalid), ",".join(trie.invalid)))
+        logger.warning("%s invalid values skipped (%s)", len(trie.invalid), ",".join(trie.invalid))
 
     logger.debug("Generating regex")
     regex = trie.to_regex(boundary, capture)
 
-    logger.debug("Writing regex to %s" % out.name)
+    logger.debug("Writing regex to %s", out.name)
     click.echo(regex, file=out, color=False)
 
 
@@ -113,14 +120,14 @@ def convert(
     nargs=-1,
     type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path),
 )
-def batch(
+def batch(  # pylint: disable=r0913
     suffix: str,
     boundary: bool,
     delimiter: str,
     capture: bool | None,
-    debug: bool,  # pyright: ignore reportUnusedVariable
+    debug: bool,  # pyright: ignore reportUnusedVariable pylint: disable=w0613
     files: tuple[pathlib.Path],
-) -> str | None:  # pylint: disable=r0913
+) -> str | None:
     """Batch convert file contents to patterns.
 
     Patterns will be written to a separate files with the --prefix value inserted before the extension:
@@ -128,10 +135,10 @@ def batch(
     source.txt > source.<suffix>.txt
     """
 
-    logger.debug("Converting %s files" % len(files))
+    logger.debug("Converting %s files", len(files))
 
     for file in files:
-        logger.info("Converting %s" % file.name)
+        logger.info("Converting %s", file.name)
 
         raw_data = file.read_text().rstrip()
 
@@ -144,15 +151,15 @@ def batch(
         logger.debug("Generating trie")
         trie = Trie(data)  # type: ignore
 
-        logger.debug("Trie created with %s value(s) and %s invalid value(s)" % (len(trie.members), len(trie.invalid)))
+        logger.debug("Trie created with %s value(s) and %s invalid value(s)", len(trie.members), len(trie.invalid))
 
         if trie.invalid:
-            logger.warning("%s invalid values skipped (%s)" % (len(trie.invalid), ",".join(trie.invalid)))
+            logger.warning("%s invalid values skipped (%s)", len(trie.invalid), ",".join(trie.invalid))
 
         logger.debug("Generating regex")
         regex = trie.to_regex(boundary, capture)
 
         out = file.with_name(f"{file.stem}.{suffix}{file.suffix}")
 
-        logger.debug("Writing regex to %s" % out.name)
+        logger.debug("Writing regex to %s", out.name)
         out.write_text(f"{regex}\n")
