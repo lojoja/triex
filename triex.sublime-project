@@ -16,7 +16,17 @@
           "pylsp.plugins.flake8.executable": ".venv/bin/flake8",
           "pylsp.plugins.pylint.executable": ".venv/bin/pylint"
         }
-      }
+      },
+      "ltex-ls": {
+        "settings": {
+          "ltex.dictionary": {
+            "en-US": [
+              "trie",
+              "triex"
+            ]
+          },
+        }
+      },
     }
   }
 }
