@@ -93,11 +93,7 @@ def convert(  # pylint: disable=r0913
 
     logger.debug("Generating trie")
     trie = Trie(data)  # type: ignore
-
-    logger.debug("Trie created with %s value(s) and %s invalid value(s)", len(trie.members), len(trie.invalid))
-
-    if trie.invalid:
-        logger.warning("%s invalid values skipped (%s)", len(trie.invalid), ",".join(trie.invalid))
+    logger.debug("Trie created with %s value(s)", len(trie.members))
 
     logger.debug("Generating regex")
     regex = trie.to_regex(boundary, capture)
@@ -150,11 +146,7 @@ def batch(  # pylint: disable=r0913
 
         logger.debug("Generating trie")
         trie = Trie(data)  # type: ignore
-
-        logger.debug("Trie created with %s value(s) and %s invalid value(s)", len(trie.members), len(trie.invalid))
-
-        if trie.invalid:
-            logger.warning("%s invalid values skipped (%s)", len(trie.invalid), ",".join(trie.invalid))
+        logger.debug("Trie created with %s value(s)", len(trie.members))
 
         logger.debug("Generating regex")
         regex = trie.to_regex(boundary, capture)
