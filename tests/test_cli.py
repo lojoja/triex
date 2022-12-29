@@ -1,11 +1,33 @@
-# pylint: disable=c0114,c0116
+# pylint: disable=c0114,c0116,r0913,w0621
 
 import pathlib
 
 from click.testing import CliRunner
 import pytest
 
-from triex.cli import cli
+import triex.cli
+
+
+@pytest.fixture
+def values() -> list[str]:
+    return ["foo", "foobar", "foobaz", "bar", "bat\n"]
+
+
+@pytest.fixture
+def pattern() -> str:
+    return r"ba[rt]|foo(?:ba[rz])?"
+
+
+@pytest.fixture
+def patterns(pattern) -> dict[str, str]:
+    return {
+        "default": f"{pattern}\n",
+        "boundary": f"\\b(?:{pattern})\\b\n",
+        "boundary (capturing)": f"\\b({pattern})\\b\n",
+        "boundary (non-capturing)": f"\\b(?:{pattern})\\b\n",
+        "capturing": f"({pattern})\n",
+        "non-capturing": f"(?:{pattern})\n",
+    }
 
 
 @pytest.fixture
@@ -14,39 +36,51 @@ def files(tmp_path: pathlib.Path) -> dict[str, pathlib.Path]:
 
 
 @pytest.mark.parametrize(
-    ["args", "content", "output", "error_message"],
+    ["args", "delimiter", "pattern_name"],
     [
-        ([], "", "", "No input"),
-        ([], "foo\nbar\n", "bar|foo\n", ""),
-        (["-b"], "foo\nbar\n", "\\b(?:bar|foo)\\b\n", ""),
-        (["-b", "-c"], "foo\nbar\n", "\\b(bar|foo)\\b\n", ""),
-        (["-b", "-n"], "foo\nbar\n", "\\b(?:bar|foo)\\b\n", ""),
-        (["-c"], "foo\nbar\n", "(bar|foo)\n", ""),
-        (["-d", "::"], "foo::bar\n", "bar|foo\n", ""),
-        (["-n"], "foo\nbar\n", "(?:bar|foo)\n", ""),
+        ([], "\n", ""),
+        ([], "\n", "default"),
+        (["-b"], "\n", "boundary"),
+        (["-b", "-c"], "\n", "boundary (capturing)"),
+        (["-b", "-n"], "\n", "boundary (non-capturing)"),
+        (["-c"], "\n", "capturing"),
+        (["-d", "::"], "::", "default"),
+        (["-n"], "\n", "non-capturing"),
+    ],
+    ids=[
+        "no input",
+        "default",
+        "boundary",
+        "boundary (capturing)",
+        "boundary (non-capturing)",
+        "capturing",
+        "delimiter",
+        "non-capturing",
     ],
 )
-def test_convert(
-    files: dict[str, pathlib.Path],  # pylint: disable=w0621
+def test_convert_file(
+    values: list[str],
+    patterns: dict[str, str],
+    files: dict[str, pathlib.Path],
     args: list[str],
-    content: str,
-    output: str,
-    error_message: str,
+    delimiter: str,
+    pattern_name: str,
 ):
-    convert_args = ["convert", "-i", str(files["in"]), "-o", str(files["out"])]
-    convert_args.extend(args)
+    convert_args = ["convert", *args]
 
-    files["in"].write_text(content)
+    if pattern_name:
+        convert_args.extend(["-i", str(files["in"]), "-o", str(files["out"])])
+        files["in"].write_text(delimiter.join(values), encoding="utf8")
 
     runner = CliRunner()
-    result = runner.invoke(cli, convert_args)
+    result = runner.invoke(triex.cli.cli, convert_args)
 
-    if error_message:
-        assert result.exit_code > 0
-        assert error_message in result.output
-    else:
+    if pattern_name:
         assert result.exit_code == 0
-        assert files["out"].read_text() == output
+        assert files["out"].read_text(encoding="utf8") == patterns[pattern_name]
+    else:
+        assert result.exit_code > 0
+        assert "No input" in result.output
 
 
 @pytest.fixture
@@ -58,41 +92,47 @@ def batch_files(tmp_path: pathlib.Path) -> dict[str, list[pathlib.Path]]:
 
 
 @pytest.mark.parametrize(
-    ["args", "content", "output", "warning_message"],
+    ["args", "delimiter", "pattern_name"],
     [
-        ([], ["", ""], ["", ""], ""),
-        ([], ["foo\nbar\n", "foo\nbar\n"], ["bar|foo\n", "bar|foo\n"], ""),
-        (["-b"], ["foo\nbar\n", "foo\nbar\n"], ["\\b(?:bar|foo)\\b\n", "\\b(?:bar|foo)\\b\n"], ""),
-        (["-b", "-c"], ["foo\nbar\n", "foo\nbar\n"], ["\\b(bar|foo)\\b\n", "\\b(bar|foo)\\b\n"], ""),
-        (["-b", "-n"], ["foo\nbar\n", "foo\nbar\n"], ["\\b(?:bar|foo)\\b\n", "\\b(?:bar|foo)\\b\n"], ""),
-        (["-c"], ["foo\nbar\n", "foo\nbar\n"], ["(bar|foo)\n", "(bar|foo)\n"], ""),
-        (["-d", "::"], ["foo::bar\n", "foo::bar\n"], ["bar|foo\n", "bar|foo\n"], ""),
-        (["-n"], ["foo\nbar\n", "foo\nbar\n"], ["(?:bar|foo)\n", "(?:bar|foo)\n"], ""),
+        ([], "\n", ""),
+        ([], "\n", "default"),
+        (["-b"], "\n", "boundary"),
+        (["-b", "-c"], "\n", "boundary (capturing)"),
+        (["-b", "-n"], "\n", "boundary (non-capturing)"),
+        (["-c"], "\n", "capturing"),
+        (["-d", "::"], "::", "default"),
+        (["-n"], "\n", "non-capturing"),
+    ],
+    ids=[
+        "no input",
+        "default",
+        "boundary",
+        "boundary (capturing)",
+        "boundary (non-capturing)",
+        "capturing",
+        "delimiter",
+        "non-capturing",
     ],
 )
 def test_batch(
-    batch_files: dict[str, list[pathlib.Path]],  # pylint: disable=w0621
+    batch_files: dict[str, list[pathlib.Path]],
+    values: list[str],
+    patterns: dict[str, str],
     args: list[str],
-    content: list[str],
-    output: list[str],
-    warning_message: str,
+    delimiter: str,
+    pattern_name: str,
 ):
-    batch_args = ["batch"]
-    batch_args.extend(args)
-
-    for idx, file in enumerate(batch_files["in"]):
-        file.write_text(content[idx])
-        batch_args.append(str(file))
+    for file in batch_files["in"]:
+        content = delimiter.join(values) if pattern_name else ""
+        file.write_text(content, encoding="utf8")
 
     runner = CliRunner()
-    result = runner.invoke(cli, batch_args)
+    result = runner.invoke(triex.cli.cli, ["batch", *args, *[str(f) for f in batch_files["in"]]])
 
     assert result.exit_code == 0
-    if warning_message:
-        assert warning_message in result.output
 
-    for idx, file in enumerate(batch_files["out"]):
-        if not output[idx]:
-            assert not file.exists()
-        else:
-            assert file.read_text() == output[idx]
+    if pattern_name:
+        for file in batch_files["out"]:
+            assert file.read_text(encoding="utf8") == patterns[pattern_name]
+    else:
+        assert "empty" in result.output

@@ -6,37 +6,36 @@ from triex import Trie
 
 
 @pytest.mark.parametrize(
-    ["data", "expected_members", "expected_structure"],
+    ["init_data", "extra_data", "valid", "members", "structure"],
     [
-        (None, [], {}),
-        ([], [], {}),
-        ("foo", ["foo"], {"f": {"o": {"o": {"": {}}}}}),
-        (["foo", 1, 1.0], ["1", "1.0", "foo"], {"f": {"o": {"o": {"": {}}}}, "1": {".": {"0": {"": {}}}, "": {}}}),
+        (None, [], True, [], {}),
+        ([], [], True, [], {}),
+        ("foo", [], True, ["foo"], {"f": {"o": {"o": {"": {}}}}}),
+        (
+            ["foo", 1, 1.0],
+            [],
+            True,
+            ["1", "1.0", "foo"],
+            {"f": {"o": {"o": {"": {}}}}, "1": {".": {"0": {"": {}}}, "": {}}},
+        ),
+        ("foo", ["foo", "bar"], True, ["bar", "foo"], {"f": {"o": {"o": {"": {}}}}, "b": {"a": {"r": {"": {}}}}}),
+        ([], [None], False, [], {}),
     ],
+    ids=["no value (None)", "no value (list)", "single value", "multiple values", "duplicate values", "invalid values"],
 )
-def test_create_with_valid_data(data, expected_members, expected_structure):
-    trie = Trie(data)
+def test_trie_data(init_data, extra_data, valid, members, structure):
+    trie = Trie(init_data, silent=valid)
 
-    assert trie.members == expected_members
-    assert trie.structure == expected_structure
+    if extra_data:
+        if valid:
+            trie.add(extra_data)
+        else:
+            with pytest.raises(TypeError):
+                trie.add(extra_data)
+            assert trie.invalid == extra_data
 
-
-def test_add_invalid_data():
-    trie = Trie(silent=False)
-
-    with pytest.raises(TypeError):
-        trie.add([None])  # type: ignore
-
-    assert trie.members == []
-    assert trie.invalid == [None]
-
-
-def test_add_duplicate_data():
-    trie = Trie("foo")
-    trie.add(["bar", "foo"])
-
-    assert trie.members == ["bar", "foo"]
-    assert trie.structure == {"f": {"o": {"o": {"": {}}}}, "b": {"a": {"r": {"": {}}}}}
+    assert trie.members == members
+    assert trie.structure == structure
 
 
 def test_to_regex():
