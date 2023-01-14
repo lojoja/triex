@@ -80,7 +80,7 @@ def test_convert_file(
         assert files["out"].read_text(encoding="utf8") == patterns[pattern_name]
     else:
         assert result.exit_code > 0
-        assert "No input" in result.output
+        assert result.output.endswith("No input provided\n")
 
 
 @pytest.fixture(name="batch_files")
@@ -135,4 +135,4 @@ def test_batch(
         for file in batch_files["out"]:
             assert file.read_text(encoding="utf8") == patterns[pattern_name]
     else:
-        assert "empty" in result.output
+        assert result.output.endswith("File is empty\n")

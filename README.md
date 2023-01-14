@@ -44,12 +44,13 @@ Usage: triex [OPTIONS] COMMAND [ARGS]...
   A tool to generate semi-minimized regular expression alternations.
 
 Options:
-  --version  Show the version and exit.
-  --help     Show this message and exit.
+  --help         Show this message and exit.
+  -v, --verbose  Increase verbosity
+  --version      Show the version and exit.
 
 Commands:
-  convert  Convert input to a regex pattern.
   batch    Batch convert file contents to patterns.
+  convert  Convert input to a regex pattern.
 ```
 
 #### Examples
