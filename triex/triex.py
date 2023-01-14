@@ -3,12 +3,13 @@ triex
 
 A tool to generate semi-minimized regular expression alternations.
 """
-from typing import Any
+
+import typing as t
 
 
-TrieNode = dict[str, "TrieNode"]
-DataValue = int | float | str
-DataInput = list[DataValue] | DataValue | None
+_TrieNode = dict[str, "_TrieNode"]
+_DataValue = int | float | str
+_DataInput = t.Optional[t.Sequence[_DataValue] | _DataValue]
 
 
 class Trie:
@@ -24,15 +25,15 @@ class Trie:
         silent: Indicates whether invalid values should be skipped silently during insertion or raise an Exception.
     """
 
-    def __init__(self, data: DataInput = None, silent: bool = True):
-        self._structure: TrieNode = {}
-        self._invalid: list[Any] = []
+    def __init__(self, data: _DataInput = None, silent: bool = True):
+        self._structure: _TrieNode = {}
+        self._invalid: list[t.Any] = []
         self._members: list[str] = []
         self.silent = silent
 
         self.add(data)
 
-    def add(self, data: DataInput) -> None:
+    def add(self, data: _DataInput) -> None:
         """
         Add values to the trie
 
@@ -41,14 +42,14 @@ class Trie:
         """
         if data is None:
             data = []
-        elif not isinstance(data, list):
+        elif isinstance(data, _DataValue) or not isinstance(data, t.Sequence):
             data = [data]
 
         processed_data = self._prune(self._coerce(data))
         self._insert(processed_data)
 
     @property
-    def invalid(self) -> list[Any]:
+    def invalid(self) -> list[t.Any]:
         """A sorted list of values that could not be added to the trie."""
         return sorted(self._invalid)
 
@@ -58,11 +59,11 @@ class Trie:
         return sorted(self._members)
 
     @property
-    def structure(self) -> TrieNode:
+    def structure(self) -> _TrieNode:
         """The trie data structure."""
         return self._structure
 
-    def to_regex(self, boundary: bool = False, capturing: bool | None = None) -> str:
+    def to_regex(self, boundary: bool = False, capturing: t.Optional[bool] = None) -> str:
         """Convert the trie to a regular expression.
 
         Args:
@@ -73,7 +74,7 @@ class Trie:
         """
         return Regex(self, boundary=boundary, capturing=capturing).pattern
 
-    def _coerce(self, data: list[DataValue]) -> list[str]:
+    def _coerce(self, data: t.Sequence[_DataValue]) -> list[str]:
         """Coerce raw values to string objects.
 
         If `self.silent` is `True` processing will continue after encountering an invalid value, otherwise processing
@@ -88,7 +89,7 @@ class Trie:
         coerced = []
 
         for value in data:
-            if not isinstance(value, (str, float, int)):
+            if not isinstance(value, _DataValue):
                 self._invalid.append(value)
                 if not self.silent:
                     raise TypeError(f'Cannot add value "{value}" with data type "{type(value)}" to trie')
@@ -139,7 +140,7 @@ class Regex:  # pylint: disable=r0903
         _pattern: The regex pattern built from the trie.
     """
 
-    def __init__(self, trie: Trie, boundary: bool = False, capturing: bool | None = None):
+    def __init__(self, trie: Trie, boundary: bool = False, capturing: t.Optional[bool] = None):
         self.boundary = boundary
 
         if boundary and capturing is None:
@@ -163,7 +164,7 @@ class Regex:  # pylint: disable=r0903
 
         return formatted_pattern
 
-    def _construct(self, data: TrieNode, is_outer=False) -> str:
+    def _construct(self, data: _TrieNode, is_outer: bool = False) -> str:
         """
         Construct a regular expression from a trie structure.
 
@@ -250,7 +251,7 @@ class Regex:  # pylint: disable=r0903
         chars = "".join(values)
         return rf"[{chars}]"
 
-    def _make_optional(self, value, count) -> str:
+    def _make_optional(self, value: str, count: int) -> str:
         """Make character class or alternation optional.
 
         Args:

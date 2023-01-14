@@ -1,4 +1,4 @@
-# pylint: disable=c0114,c0116,r0913,w0621
+# pylint: disable=missing-function-docstring,missing-module-docstring
 
 import pathlib
 
@@ -8,18 +8,18 @@ import pytest
 import triex.cli
 
 
-@pytest.fixture
-def values() -> list[str]:
+@pytest.fixture(name="values")
+def fixture_values() -> list[str]:
     return ["foo", "foobar", "foobaz", "bar", "bat\n"]
 
 
-@pytest.fixture
-def pattern() -> str:
+@pytest.fixture(name="pattern")
+def fixture_pattern() -> str:
     return r"ba[rt]|foo(?:ba[rz])?"
 
 
-@pytest.fixture
-def patterns(pattern) -> dict[str, str]:
+@pytest.fixture(name="patterns")
+def fixture_patterns(pattern: str) -> dict[str, str]:
     return {
         "default": f"{pattern}\n",
         "boundary": f"\\b(?:{pattern})\\b\n",
@@ -30,8 +30,8 @@ def patterns(pattern) -> dict[str, str]:
     }
 
 
-@pytest.fixture
-def files(tmp_path: pathlib.Path) -> dict[str, pathlib.Path]:
+@pytest.fixture(name="files")
+def fixture_files(tmp_path: pathlib.Path) -> dict[str, pathlib.Path]:
     return {"in": tmp_path / "in.txt", "out": tmp_path / "out.txt"}
 
 
@@ -65,7 +65,7 @@ def test_convert_file(
     args: list[str],
     delimiter: str,
     pattern_name: str,
-):
+):  # pylint: disable=too-many-arguments
     convert_args = ["convert", *args]
 
     if pattern_name:
@@ -83,8 +83,8 @@ def test_convert_file(
         assert "No input" in result.output
 
 
-@pytest.fixture
-def batch_files(tmp_path: pathlib.Path) -> dict[str, list[pathlib.Path]]:
+@pytest.fixture(name="batch_files")
+def fixture_batch_files(tmp_path: pathlib.Path) -> dict[str, list[pathlib.Path]]:
     return {
         "in": [tmp_path / "foo.txt", tmp_path / "bar.txt"],
         "out": [tmp_path / "foo.triex.txt", tmp_path / "bar.triex.txt"],
@@ -121,7 +121,7 @@ def test_batch(
     args: list[str],
     delimiter: str,
     pattern_name: str,
-):
+):  # pylint: disable=too-many-arguments
     for file in batch_files["in"]:
         content = delimiter.join(values) if pattern_name else ""
         file.write_text(content, encoding="utf8")

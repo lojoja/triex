@@ -7,7 +7,7 @@ The command-line interface for triex
 import logging
 import pathlib
 from sys import stdin, stdout
-from typing import IO
+import typing as t
 
 import click
 from clickext import DebugCommonOptionGroup
@@ -71,16 +71,19 @@ def cli() -> None:
     type=click.File(mode="w"),
 )
 def convert(  # pylint: disable=r0913
-    in_: IO,
-    out: IO,
+    in_: t.IO,
+    out: t.IO,
     boundary: bool,
     delimiter: str,
-    capture: bool | None,
+    capture: t.Optional[bool],
     debug: bool,  # pyright: ignore reportUnusedVariable pylint: disable=w0613
-) -> str | None:
+) -> None:
     """Convert input to a regex pattern."""
 
     logger.debug("Preparing input data")
+
+    raw_data: t.Optional[str]
+
     if not in_.isatty():
         raw_data = in_.read().rstrip()
     else:
@@ -92,7 +95,7 @@ def convert(  # pylint: disable=r0913
     data = raw_data.split(delimiter) if delimiter else raw_data.splitlines()
 
     logger.debug("Generating trie")
-    trie = Trie(data)  # type: ignore
+    trie = Trie(data)
     logger.debug("Trie created with %s value(s)", len(trie.members))
 
     logger.debug("Generating regex")
@@ -120,10 +123,10 @@ def batch(  # pylint: disable=r0913
     suffix: str,
     boundary: bool,
     delimiter: str,
-    capture: bool | None,
+    capture: t.Optional[bool],
     debug: bool,  # pyright: ignore reportUnusedVariable pylint: disable=w0613
     files: tuple[pathlib.Path],
-) -> str | None:
+) -> None:
     """Batch convert file contents to patterns.
 
     Patterns will be written to a separate files with the --prefix value inserted before the extension:
@@ -145,7 +148,7 @@ def batch(  # pylint: disable=r0913
         data = raw_data.split(delimiter) if delimiter else raw_data.splitlines()
 
         logger.debug("Generating trie")
-        trie = Trie(data)  # type: ignore
+        trie = Trie(data)
         logger.debug("Trie created with %s value(s)", len(trie.members))
 
         logger.debug("Generating regex")

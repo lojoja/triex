@@ -1,8 +1,9 @@
-# pylint: disable=c0114,c0116
+# pylint: disable=missing-function-docstring,missing-module-docstring
 
 import pytest
 
 from triex import Trie
+from triex.triex import _TrieNode, _DataInput
 
 
 @pytest.mark.parametrize(
@@ -23,7 +24,13 @@ from triex import Trie
     ],
     ids=["no value (None)", "no value (list)", "single value", "multiple values", "duplicate values", "invalid values"],
 )
-def test_trie_data(init_data, extra_data, valid, members, structure):
+def test_trie_data(
+    init_data: _DataInput,
+    extra_data: _DataInput,
+    valid: bool,
+    members: list[str],
+    structure: _TrieNode,
+):
     trie = Trie(init_data, silent=valid)
 
     if extra_data:

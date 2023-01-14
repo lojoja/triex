@@ -1,2 +1,8 @@
-# pylint: disable=c0114
-from .triex import Trie  # pyright: ignore[reportUnusedImport,reportUnusedVariable]
+"""
+triex
+
+The triex public API
+"""
+
+from .triex import Trie
+from .triex import Regex

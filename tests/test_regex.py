@@ -1,24 +1,25 @@
-# pylint: disable=c0114,c0116,w0621
+# pylint: disable=missing-function-docstring,missing-module-docstring
 
 import re
+import typing as t
 
 import pytest
 
-from triex.triex import Trie, Regex
+from triex import Trie, Regex
 
 
-@pytest.fixture
-def values() -> list[str]:
+@pytest.fixture(name="values")
+def fixture_values() -> list[str]:
     return ["foo", "foobar", "foobaz", "bar", "bat"]
 
 
-@pytest.fixture
-def pattern() -> str:
+@pytest.fixture(name="pattern")
+def fixture_pattern() -> str:
     return r"ba[rt]|foo(?:ba[rz])?"
 
 
-@pytest.fixture
-def patterns(pattern) -> dict[str, str]:
+@pytest.fixture(name="patterns")
+def fixture_patterns(pattern) -> dict[str, str]:
     return {
         "default": pattern,
         "boundary": f"\\b(?:{pattern})\\b",
@@ -41,7 +42,9 @@ def patterns(pattern) -> dict[str, str]:
     ],
     ids=["default", "boundary", "boundary (capturing)", "boundary (non-capturing)", "capturing", "non-capturing"],
 )
-def test_pattern(values, patterns, boundary, capturing, pattern_name):
+def test_pattern(
+    values: list[str], patterns: dict[str, str], boundary: bool, capturing: t.Optional[bool], pattern_name: str
+):
     trie = Trie(values)
     regex = Regex(trie, boundary, capturing)
 
