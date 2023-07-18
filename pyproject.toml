@@ -3,13 +3,16 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "triex"
+name = "py-triex"
 version = "2.0.3dev"
 description = "A tool to generate semi-minimized regular expression alternations."
 readme = "README.md"
 license = "MIT"
 authors = [
   "lojoja <dev@lojoja.com>"
+]
+packages = [
+    {include = "triex"}
 ]
 homepage = "https://gitea.lojoja.com/lojoja/triex"
 repository = "https://gitea.lojoja.com/lojoja/triex"
