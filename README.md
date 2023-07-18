@@ -7,21 +7,13 @@ Given a list of `str`, `int`, and `float` values, triex constructs a trie data s
 
 ## Requirements
 
-* Python 3.10.x
+* Python 3.10.x, 3.11.x
 
 
 ## Installation
 
-### Local
-
 ```
-pip install --trusted-host=gitea.lojoja.com --extra-index-url=https://gitea.lojoja.com/api/packages/lojoja/pypi/simple triex
-```
-
-### Remote
-
-```
-pip install git+ssh://github.com/lojoja/triex@main
+pip install py-triex
 ```
 
 

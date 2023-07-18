@@ -14,15 +14,18 @@ authors = [
 packages = [
     {include = "triex"}
 ]
-homepage = "https://gitea.lojoja.com/lojoja/triex"
-repository = "https://gitea.lojoja.com/lojoja/triex"
-documentation = "https://gitea.lojoja.com/lojoja/triex"
+homepage = "https://github.com.com/lojoja/triex"
+repository = "https://github.com.com/lojoja/triex"
 classifiers = [
   "Development Status :: 5 - Production/Stable",
-  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
 ]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/lojoja/triex/issues"
 
 [tool.poetry.dependencies]
 python = "^3.10.0"
