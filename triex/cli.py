@@ -23,7 +23,7 @@ init_logging(logger)
 
 
 @click.group(cls=ClickextGroup, global_opts=["verbose"], shared_params=["boundary", "capture", "delimiter"])
-@click.version_option()
+@click.version_option(package_name="py_triex")
 @click.option(
     "--boundary",
     "-b",
