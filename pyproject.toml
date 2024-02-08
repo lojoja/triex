@@ -8,12 +8,7 @@ version = "2.0.5dev"
 description = "A tool to generate semi-minimized regular expression alternations."
 readme = "README.md"
 license = "MIT"
-authors = [
-  "lojoja <dev@lojoja.com>"
-]
-packages = [
-    {include = "triex"}
-]
+authors = ["lojoja <dev@lojoja.com>"]
 homepage = "https://github.com.com/lojoja/triex"
 repository = "https://github.com.com/lojoja/triex"
 classifiers = [
@@ -22,6 +17,9 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+]
+packages = [
+    {include = "triex"}
 ]
 
 [tool.poetry.urls]
@@ -33,23 +31,25 @@ click = "^8.0.0"
 clickext = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.0.0"
-flake8 = "^6.0.0"
-pylint = "^2.0.0"
-pytest = "^7.0.0"
-pytest-cov = "^3.0.0"
+black = "^24.0.0"
+pylint = "^3.0.0"
+pyright = "^1.1.349"
+pytest = "^8.0.0"
+pytest-cov = "^4.1.0"
 
 [tool.poetry.scripts]
 triex = "triex.cli:cli"
 
 [tool.black]
-line-length = 120
-target_version = ["py310"]
 include = '\.pyi?$'
+line-length = 120
+skip-magic-trailing-comma = true
+target_version = ["py310", "py311"]
 
 [tool.coverage.run]
 source = ["triex"]
 omit = ["tests/"]
+branch = true
 
 [tool.coverage.report]
 exclude_lines = [
@@ -57,20 +57,27 @@ exclude_lines = [
   "def __repr__",
   "if log:"
 ]
+fail_under = 100
 show_missing = true
 
 [tool.pylint.main]
-ignore-paths = ["dist/.*.py", ".*/.venv/.*.py"]
+ignore-paths = [".*/.venv/.*.py", "dist/.*.py"]
+load-plugins = ["pylint.extensions.mccabe"]
+
+[tool.pylint.design]
+max-complexity = 15
 
 [tool.pylint.format]
 max-line-length = 120
 
 [tool.pyright]
-ignore = ["dist/*", ".venv/*"]
-venvPath = "."
+ignore = [".venv/*", "dist/*"]
+pythonVersion = "3.10"
 venv = [".venv"]
+venvPath = "."
 
 [tool.pytest.ini_options]
-addopts = "--cov -s"
-filterwarnings = ["ignore:::.*pytest_cov*"]
+addopts = "-s"
 testpaths = ["tests"]
+markers = []
+filterwarnings = ["ignore:::.*pytest_cov*"]
