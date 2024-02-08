@@ -1,11 +1,7 @@
 {
   "folders": [
     {
-      "folder_exclude_patterns": [
-        "__pycache__",
-        "*.egg-info",
-        ".pytest_cache"
-      ],
+      "folder_exclude_patterns": ["__pycache__", "*.egg-info", ".pytest_cache"],
       "path": "."
     }
   ],
@@ -16,16 +12,16 @@
           "pylsp.plugins.pylint.executable": ".venv/bin/pylint"
         }
       },
+      "LSP-pyright": {
+        "settings": {}
+      },
       "ltex-ls": {
         "settings": {
           "ltex.dictionary": {
-            "en-US": [
-              "trie",
-              "triex"
-            ]
-          },
+            "en-US": ["trie", "triex"]
+          }
         }
-      },
+      }
     }
   }
 }

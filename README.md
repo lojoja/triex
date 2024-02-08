@@ -4,18 +4,15 @@ A tool to generate semi-minimized regular expression alternations.
 
 Given a list of `str`, `int`, and `float` values, triex constructs a trie data structure and generates a minimized regular expression that matches all members in the trie. The regex is created walking the values left-to-right, so the best results are achieved with values that share a common prefix.
 
-
 ## Requirements
 
-* Python 3.10.x, 3.11.x
-
+- Python 3.10.x, 3.11.x
 
 ## Installation
 
 ```
 pip install py-triex
 ```
-
 
 ## Usage
 
