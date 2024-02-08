@@ -77,7 +77,7 @@ venv = [".venv"]
 venvPath = "."
 
 [tool.pytest.ini_options]
-addopts = "-s"
+addopts = "-s --strict-markers"
 testpaths = ["tests"]
 markers = []
 filterwarnings = ["ignore:::.*pytest_cov*"]
