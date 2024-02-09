@@ -1,138 +1,140 @@
-# pylint: disable=missing-function-docstring,missing-module-docstring
+# pylint: disable=missing-function-docstring,missing-module-docstring,too-many-arguments,too-many-locals
 
-import pathlib
+from io import BytesIO
+from pathlib import Path
+import typing as t
 
 from click.testing import CliRunner
 import pytest
 
-import triex.cli
+from triex.cli import cli
 
 
-@pytest.fixture(name="values")
-def fixture_values() -> list[str]:
-    return ["foo", "foobar", "foobaz", "bar", "bat\n"]
+@pytest.mark.parametrize("stdout", [True, False])
+@pytest.mark.parametrize("stdin", [True, False])
+@pytest.mark.parametrize("delimiter", [None, "::"])
+@pytest.mark.parametrize("capturing", [True, False, None])
+@pytest.mark.parametrize("boundary", [True, False])
+def test_convert(
+    tmp_path: Path,
+    build_pattern: t.Callable[[bool, t.Optional[bool]], str],
+    raw_values: list[str],
+    boundary: bool,
+    capturing: t.Optional[bool],
+    delimiter: t.Optional[str],
+    stdin: bool,
+    stdout: bool,
+):
+    input_file = None
+    output_file = None
 
+    args = ["convert"]
 
-@pytest.fixture(name="pattern")
-def fixture_pattern() -> str:
-    return r"ba[rt]|foo(?:ba[rz])?"
+    if boundary:
+        args.append("-b")
 
+    if capturing is not None:
+        args.append("-c" if capturing else "-n")
 
-@pytest.fixture(name="patterns")
-def fixture_patterns(pattern: str) -> dict[str, str]:
-    return {
-        "default": f"{pattern}\n",
-        "boundary": f"\\b(?:{pattern})\\b\n",
-        "boundary (capturing)": f"\\b({pattern})\\b\n",
-        "boundary (non-capturing)": f"\\b(?:{pattern})\\b\n",
-        "capturing": f"({pattern})\n",
-        "non-capturing": f"(?:{pattern})\n",
-    }
-
-
-@pytest.fixture(name="files")
-def fixture_files(tmp_path: pathlib.Path) -> dict[str, pathlib.Path]:
-    return {"in": tmp_path / "in.txt", "out": tmp_path / "out.txt"}
-
-
-@pytest.mark.parametrize(
-    ["args", "delimiter", "pattern_name"],
-    [
-        ([], "\n", ""),
-        ([], "\n", "default"),
-        (["-b"], "\n", "boundary"),
-        (["-b", "-c"], "\n", "boundary (capturing)"),
-        (["-b", "-n"], "\n", "boundary (non-capturing)"),
-        (["-c"], "\n", "capturing"),
-        (["-d", "::"], "::", "default"),
-        (["-n"], "\n", "non-capturing"),
-    ],
-    ids=[
-        "no input",
-        "default",
-        "boundary",
-        "boundary (capturing)",
-        "boundary (non-capturing)",
-        "capturing",
-        "delimiter",
-        "non-capturing",
-    ],
-)
-def test_convert_file(
-    values: list[str],
-    patterns: dict[str, str],
-    files: dict[str, pathlib.Path],
-    args: list[str],
-    delimiter: str,
-    pattern_name: str,
-):  # pylint: disable=too-many-arguments
-    convert_args = ["convert", *args]
-
-    if pattern_name:
-        convert_args.extend(["-i", str(files["in"]), "-o", str(files["out"])])
-        files["in"].write_text(delimiter.join(values), encoding="utf8")
-
-    runner = CliRunner()
-    result = runner.invoke(triex.cli.cli, convert_args)
-
-    if pattern_name:
-        assert result.exit_code == 0
-        assert files["out"].read_text(encoding="utf8") == patterns[pattern_name]
+    if delimiter is not None:
+        input_data = delimiter.join(raw_values)
+        args.extend(["-d", delimiter])
     else:
-        assert result.exit_code > 0
-        assert result.output.endswith("No input provided\n")
+        input_data = "\n".join(raw_values)
 
+    if not stdin:
+        input_file = tmp_path / "in.txt"
+        input_file.write_text(input_data, encoding="utf8")
+        args.extend(["-i", str(input_file)])
 
-@pytest.fixture(name="batch_files")
-def fixture_batch_files(tmp_path: pathlib.Path) -> dict[str, list[pathlib.Path]]:
-    return {
-        "in": [tmp_path / "foo.txt", tmp_path / "bar.txt"],
-        "out": [tmp_path / "foo.triex.txt", tmp_path / "bar.triex.txt"],
-    }
-
-
-@pytest.mark.parametrize(
-    ["args", "delimiter", "pattern_name"],
-    [
-        ([], "\n", ""),
-        ([], "\n", "default"),
-        (["-b"], "\n", "boundary"),
-        (["-b", "-c"], "\n", "boundary (capturing)"),
-        (["-b", "-n"], "\n", "boundary (non-capturing)"),
-        (["-c"], "\n", "capturing"),
-        (["-d", "::"], "::", "default"),
-        (["-n"], "\n", "non-capturing"),
-    ],
-    ids=[
-        "no input",
-        "default",
-        "boundary",
-        "boundary (capturing)",
-        "boundary (non-capturing)",
-        "capturing",
-        "delimiter",
-        "non-capturing",
-    ],
-)
-def test_batch(
-    batch_files: dict[str, list[pathlib.Path]],
-    values: list[str],
-    patterns: dict[str, str],
-    args: list[str],
-    delimiter: str,
-    pattern_name: str,
-):  # pylint: disable=too-many-arguments
-    for file in batch_files["in"]:
-        content = delimiter.join(values) if pattern_name else ""
-        file.write_text(content, encoding="utf8")
+    if not stdout:
+        output_file = tmp_path / "sub/out.txt"  # Use subdirectory to test if parents are created
+        args.extend(["-o", str(output_file)])
 
     runner = CliRunner()
-    result = runner.invoke(triex.cli.cli, ["batch", *args, *[str(f) for f in batch_files["in"]]])
+    result = runner.invoke(cli, args, input_data if stdin else None)
 
     assert result.exit_code == 0
 
-    if pattern_name:
-        for file in batch_files["out"]:
-            assert file.read_text(encoding="utf8") == patterns[pattern_name]
+    if output_file:
+        assert output_file.exists()
+        pattern = output_file.read_text(encoding="utf8")
     else:
-        assert result.output.endswith("File is empty\n")
+        pattern = result.output
+
+    assert pattern == f"{build_pattern(boundary, capturing)}\n"
+
+
+@pytest.mark.parametrize("isatty", [True, False])
+def test_convert_detects_tty(monkeypatch: pytest.MonkeyPatch, isatty: bool):
+    text = "foo\nbar"
+    stream = BytesIO(text.encode())
+    monkeypatch.setattr(stream, "isatty", lambda: isatty)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, "convert", stream)
+
+    assert result.output == "Error: No input provided\n" if isatty else "bar|foo\n"
+
+
+@pytest.mark.parametrize("suffix", [None, "foo"])
+@pytest.mark.parametrize("delimiter", [None, "::"])
+@pytest.mark.parametrize("capturing", [True, False, None])
+@pytest.mark.parametrize("boundary", [True, False])
+def test_batch(
+    tmp_path: Path,
+    build_pattern: t.Callable[[bool, t.Optional[bool]], str],
+    raw_values: list[str],
+    boundary: bool,
+    capturing: t.Optional[bool],
+    delimiter: t.Optional[str],
+    suffix: t.Optional[str],
+):
+    input_files = []
+    output_files = []
+
+    args = ["batch"]
+
+    if boundary:
+        args.append("-b")
+
+    if capturing is not None:
+        args.append("-c" if capturing else "-n")
+
+    if delimiter is not None:
+        input_data = delimiter.join(raw_values)
+        args.extend(["-d", delimiter])
+    else:
+        input_data = "\n".join(raw_values)
+
+    if suffix is not None:
+        args.extend(["-s", suffix])
+
+    for i in range(0, 2):
+        input_file = tmp_path / f"{i}.txt"
+        input_file.write_text(input_data, encoding="utf8")
+        input_files.append(input_file)
+        args.append(str(input_file))
+
+        output_file = tmp_path / f"{input_file.stem}.{suffix if suffix else 'triex'}{input_file.suffix}"
+        output_files.append(output_file)
+
+    runner = CliRunner()
+    result = runner.invoke(cli, args)
+
+    assert result.exit_code == 0
+
+    for file in output_files:
+        assert file.exists()
+        assert file.read_text(encoding="utf8") == f"{build_pattern(boundary, capturing)}\n"
+
+
+def test_batch_with_empty_file(tmp_path: Path):
+    input_file = tmp_path / "in.txt"
+    input_file.touch()
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["batch", str(input_file)])
+
+    assert result.exit_code == 0
+    assert result.output == f"Converting {input_file.name}\nWarning: File is empty\n"
