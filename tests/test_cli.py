@@ -10,6 +10,20 @@ import pytest
 from triex.cli import cli
 
 
+def test_cli_version():
+    runner = CliRunner()
+    result = runner.invoke(cli, "--version")
+    assert result.output.startswith("cli, version")
+
+
+@pytest.mark.parametrize("short_opts", [True, False])
+@pytest.mark.parametrize("verbose", [True, False])
+def test_cli_verbosity(caplog: pytest.LogCaptureFixture, verbose: bool, short_opts: bool):
+    runner = CliRunner()
+    runner.invoke(cli, ["convert", ("-v" if short_opts else "--verbose") if verbose else ""], "foo")
+    assert ("DEBUG" in caplog.text) is verbose
+
+
 @pytest.mark.parametrize("short_opts", [True, False])
 @pytest.mark.parametrize("stdout", [True, False])
 @pytest.mark.parametrize("stdin", [True, False])
