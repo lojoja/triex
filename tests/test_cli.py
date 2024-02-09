@@ -10,6 +10,7 @@ import pytest
 from triex.cli import cli
 
 
+@pytest.mark.parametrize("short_opts", [True, False])
 @pytest.mark.parametrize("stdout", [True, False])
 @pytest.mark.parametrize("stdin", [True, False])
 @pytest.mark.parametrize("delimiter", [None, "::"])
@@ -24,6 +25,7 @@ def test_convert(
     delimiter: t.Optional[str],
     stdin: bool,
     stdout: bool,
+    short_opts: bool,
 ):
     input_file = None
     output_file = None
@@ -31,25 +33,25 @@ def test_convert(
     args = ["convert"]
 
     if boundary:
-        args.append("-b")
+        args.append("-b" if short_opts else "--boundary")
 
     if capturing is not None:
-        args.append("-c" if capturing else "-n")
+        args.append(("-c" if short_opts else "--capture") if capturing else ("-n" if short_opts else "--non-capture"))
 
     if delimiter is not None:
         input_data = delimiter.join(raw_values)
-        args.extend(["-d", delimiter])
+        args.extend(["-d" if short_opts else "--delimiter", delimiter])
     else:
         input_data = "\n".join(raw_values)
 
     if not stdin:
         input_file = tmp_path / "in.txt"
         input_file.write_text(input_data, encoding="utf8")
-        args.extend(["-i", str(input_file)])
+        args.extend(["-i" if short_opts else "--in", str(input_file)])
 
     if not stdout:
         output_file = tmp_path / "sub/out.txt"  # Use subdirectory to test if parents are created
-        args.extend(["-o", str(output_file)])
+        args.extend(["-o" if short_opts else "--out", str(output_file)])
 
     runner = CliRunner()
     result = runner.invoke(cli, args, input_data if stdin else None)
@@ -77,6 +79,7 @@ def test_convert_detects_tty(monkeypatch: pytest.MonkeyPatch, isatty: bool):
     assert result.output == "Error: No input provided\n" if isatty else "bar|foo\n"
 
 
+@pytest.mark.parametrize("short_opts", [True, False])
 @pytest.mark.parametrize("suffix", [None, "foo"])
 @pytest.mark.parametrize("delimiter", [None, "::"])
 @pytest.mark.parametrize("capturing", [True, False, None])
@@ -89,6 +92,7 @@ def test_batch(
     capturing: t.Optional[bool],
     delimiter: t.Optional[str],
     suffix: t.Optional[str],
+    short_opts: bool,
 ):
     input_files = []
     output_files = []
@@ -96,19 +100,19 @@ def test_batch(
     args = ["batch"]
 
     if boundary:
-        args.append("-b")
+        args.append("-b" if short_opts else "--boundary")
 
     if capturing is not None:
-        args.append("-c" if capturing else "-n")
+        args.append(("-c" if short_opts else "--capture") if capturing else ("-n" if short_opts else "--non-capture"))
 
     if delimiter is not None:
         input_data = delimiter.join(raw_values)
-        args.extend(["-d", delimiter])
+        args.extend(["-d" if short_opts else "--delimiter", delimiter])
     else:
         input_data = "\n".join(raw_values)
 
     if suffix is not None:
-        args.extend(["-s", suffix])
+        args.extend(["-s" if short_opts else "--suffix", suffix])
 
     for i in range(0, 2):
         input_file = tmp_path / f"{i}.txt"
