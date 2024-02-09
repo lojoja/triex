@@ -7,9 +7,9 @@ A tool to generate semi-minimized regular expression alternations.
 import typing as t
 
 
-_TrieNode = dict[str, "_TrieNode"]
-_DataValue = int | float | str
-_DataInput = t.Optional[t.Sequence[_DataValue] | _DataValue]
+TrieNode: t.TypeAlias = dict[str, "TrieNode"]
+DataValue: t.TypeAlias = int | float | str
+DataInput: t.TypeAlias = t.Optional[t.Sequence[DataValue] | DataValue]
 
 
 class Trie:
@@ -25,15 +25,15 @@ class Trie:
         silent: Indicates whether invalid values should be skipped silently during insertion or raise an Exception.
     """
 
-    def __init__(self, data: _DataInput = None, silent: bool = True):
-        self._structure: _TrieNode = {}
+    def __init__(self, data: DataInput = None, silent: bool = True):
+        self._structure: TrieNode = {}
         self._invalid: list[t.Any] = []
         self._members: list[str] = []
         self.silent = silent
 
         self.add(data)
 
-    def add(self, data: _DataInput) -> None:
+    def add(self, data: DataInput) -> None:
         """
         Add values to the trie
 
@@ -42,7 +42,7 @@ class Trie:
         """
         if data is None:
             data = []
-        elif isinstance(data, _DataValue) or not isinstance(data, t.Sequence):
+        elif isinstance(data, DataValue) or not isinstance(data, t.Sequence):
             data = [data]
 
         processed_data = self._prune(self._coerce(data))
@@ -59,7 +59,7 @@ class Trie:
         return sorted(self._members)
 
     @property
-    def structure(self) -> _TrieNode:
+    def structure(self) -> TrieNode:
         """The trie data structure."""
         return self._structure
 
@@ -74,7 +74,7 @@ class Trie:
         """
         return Regex(self, boundary=boundary, capturing=capturing).pattern
 
-    def _coerce(self, data: t.Sequence[_DataValue]) -> list[str]:
+    def _coerce(self, data: t.Sequence[DataValue]) -> list[str]:
         """Coerce raw values to string objects.
 
         If `self.silent` is `True` processing will continue after encountering an invalid value, otherwise processing
@@ -89,7 +89,7 @@ class Trie:
         coerced = []
 
         for value in data:
-            if not isinstance(value, _DataValue):
+            if not isinstance(value, DataValue):
                 self._invalid.append(value)
                 if not self.silent:
                     raise TypeError(f'Cannot add value "{value}" with data type "{type(value)}" to trie')
@@ -164,7 +164,7 @@ class Regex:  # pylint: disable=r0903
 
         return formatted_pattern
 
-    def _construct(self, data: _TrieNode, is_outer: bool = False) -> str:
+    def _construct(self, data: TrieNode, is_outer: bool = False) -> str:
         """
         Construct a regular expression from a trie structure.
 
