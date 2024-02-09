@@ -126,7 +126,7 @@ class Trie:
         return [v for v in data if v not in self.members]
 
 
-class Regex:  # pylint: disable=r0903
+class Regex:  # pylint: disable=too-few-public-methods
     """A regular expression generated from a trie data structure.
 
     Args:
@@ -217,7 +217,7 @@ class Regex:  # pylint: disable=r0903
         control_chars = r"^-]\\" if char_class else r".^$*+?()[{\|"
 
         if char in control_chars:
-            return rf"\{char}".format(char)
+            return rf"\{char}"
 
         return char
 
