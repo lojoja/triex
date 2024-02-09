@@ -5,7 +5,7 @@ The command-line interface for triex
 """
 
 import logging
-import pathlib
+from pathlib import Path
 import sys
 import typing as t
 
@@ -31,8 +31,8 @@ init_logging(logger)
     flag_value=True,
     default=False,
     help=(
-        'Enclose pattern in boundary tokens ("\\b").'
-        " The pattern is placed in a non-capturing group if neither --capture or --non-capture is passed."
+        'Enclose pattern in boundary tokens ("\\b"). '
+        "The pattern is placed in a non-capturing group if neither --capture or --non-capture is passed."
     ),
 )
 @click.option(
@@ -56,9 +56,9 @@ def cli() -> None:
 
 
 @cli.command(cls=ClickextCommand)
-@click.option("--in", "-i", "in_", default=sys.stdin, help="The input file. [default: stdin]", type=click.File())
-@click.option("--out", "-o", default=sys.stdout, help="The output file. [default: stdout]", type=click.File(mode="w"))
-def convert(in_: t.IO, out: t.IO, boundary: bool, capture: t.Optional[bool], delimiter: str) -> None:
+@click.option("--in", "-i", "in_", default="-", show_default=True, help="The input file.", type=click.File())
+@click.option("--out", "-o", "out_", default="-", show_default=True, help="The output file.", type=click.File(mode="w"))
+def convert(in_: t.IO, out_: t.IO, boundary: bool, capture: t.Optional[bool], delimiter: t.Optional[str]) -> None:
     """Convert input to a regex pattern."""
 
     logger.debug("Preparing input data")
@@ -82,8 +82,12 @@ def convert(in_: t.IO, out: t.IO, boundary: bool, capture: t.Optional[bool], del
     logger.debug("Generating regex")
     regex = trie.to_regex(boundary, capture)
 
-    logger.debug("Writing regex to %s", out.name)
-    click.echo(regex, file=out, color=False)
+    if out_ is not sys.stdout:
+        logger.debug("Ensuring output directory exists")
+        Path(out_.name).parent.mkdir(parents=True, exist_ok=True)
+
+    logger.debug("Writing regex to %s", out_.name)
+    click.echo(regex, file=out_, color=False)
 
 
 @cli.command(cls=ClickextCommand)
@@ -95,11 +99,13 @@ def convert(in_: t.IO, out: t.IO, boundary: bool, capture: t.Optional[bool], del
     help="The suffix to add to the output file names.",
     type=click.STRING,
 )
-@click.argument("files", nargs=-1, type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path))
-def batch(suffix: str, files: tuple[pathlib.Path], capture: t.Optional[bool], boundary: bool, delimiter: str) -> None:
+@click.argument("files", nargs=-1, type=click.Path(exists=True, dir_okay=False, path_type=Path))
+def batch(
+    suffix: str, files: tuple[Path], capture: t.Optional[bool], boundary: bool, delimiter: t.Optional[str]
+) -> None:
     """Batch convert file contents to patterns.
 
-    Patterns will be written to a separate files with the --suffix value inserted before the extension:
+    Patterns will be written to separate files with the --suffix value inserted before the extension:
 
     source.txt > source.<suffix>.txt
     """
@@ -124,7 +130,7 @@ def batch(suffix: str, files: tuple[pathlib.Path], capture: t.Optional[bool], bo
         logger.debug("Generating regex")
         regex = trie.to_regex(boundary, capture)
 
-        out = file.with_name(f"{file.stem}.{suffix}{file.suffix}")
+        out_ = file.with_name(f"{file.stem}.{suffix}{file.suffix}")
 
-        logger.debug("Writing regex to %s", out.name)
-        out.write_text(f"{regex}\n", encoding="utf8")
+        logger.debug("Writing regex to %s", out_.name)
+        out_.write_text(f"{regex}\n", encoding="utf8")
