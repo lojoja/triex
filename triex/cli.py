@@ -10,7 +10,7 @@ import sys
 import typing as t
 
 import click
-from clickext import ClickextCommand, ClickextGroup, init_logging, verbose_option
+from clickext import ClickextCommand, ClickextGroup, verbose_option
 
 from .triex import Trie
 
@@ -19,7 +19,6 @@ __all__ = ["cli"]
 
 
 logger = logging.getLogger(__package__)
-init_logging(logger)
 
 
 @click.group(cls=ClickextGroup, global_opts=["verbose"], shared_params=["boundary", "capture", "delimiter"])
