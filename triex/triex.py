@@ -18,11 +18,8 @@ class Trie:
     Create and manipulate a trie representation of one or more strings. Duplicates are pruned before insertion,
     and members are cached to allow insertion without re-generating the entire trie.
 
-    Args:
-        data: A value or `list` of values to be added to the trie. Values may be a `str`, `int` and/or `float`.
-
-    Attributes:
-        silent: Indicates whether invalid values should be skipped silently during insertion or raise an Exception.
+    :param data: A value or `list` of values to be added to the trie. Values may be a `str`, `int` and/or `float`.
+    :param silent: Indicates whether invalid values should be skipped silently during insertion or raise an Exception.
     """
 
     def __init__(self, data: DataInput = None, silent: bool = True):
@@ -34,11 +31,9 @@ class Trie:
         self.add(data)
 
     def add(self, data: DataInput) -> None:
-        """
-        Add values to the trie
+        """Add values to the trie
 
-        Args:
-            data: A value or list of values to add to the trie.
+        :param data: A value or list of values to add to the trie.
         """
         if data is None:
             data = []
@@ -66,11 +61,10 @@ class Trie:
     def to_regex(self, boundary: bool = False, capturing: t.Optional[bool] = None) -> str:
         """Convert the trie to a regular expression.
 
-        Args:
-            boundary: Indicates whether the regex should be surrounded by boundary ('\b') tokens.
-            capturing: Indicates whether the pattern should be in a capturing (`True`) or non-capturing (`False`) group.
-                       When value is `None` the pattern will not be grouped unless `boundary` is `True` in which case it
-                       will be made a non-capturing group so the boundary tokens apply to all items in the pattern.
+        :param boundary: Indicates whether the regex should be surrounded by boundary ('\b') tokens.
+        :param capturing: Indicates whether the pattern should be in a capturing (`True`) or non-capturing (`False`)
+        group. When value is `None` the pattern will not be grouped unless `boundary` is `True` in which case it will be
+        made a non-capturing group so the boundary tokens apply to all items in the pattern.
         """
         return Regex(self, boundary=boundary, capturing=capturing).pattern
 
@@ -80,11 +74,9 @@ class Trie:
         If `self.silent` is `True` processing will continue after encountering an invalid value, otherwise processing
         stops and raises an exception.
 
-        Args:
-            data: A list of values.
+        :param data: A list of values.
 
-        Raises:
-            TypeError: When a value could not be coerced to a string.
+        :raises TypeError: When a value could not be coerced to a string.
         """
         coerced = []
 
@@ -101,8 +93,7 @@ class Trie:
     def _insert(self, data: list[str]) -> None:
         """Insert values in the trie.
 
-        Args:
-            data: A list of string objects.
+        :param data: A list of string objects.
         """
         for value in data:
             node = self._structure
@@ -119,8 +110,7 @@ class Trie:
     def _prune(self, data: list[str]) -> list[str]:
         """Prune duplicate values from the input data and values in `self.members`.
 
-        Args:
-            data: A list of values.
+        :param data: A list of values.
         """
         data = list(set(data))
         return [v for v in data if v not in self.members]
@@ -129,15 +119,11 @@ class Trie:
 class Regex:  # pylint: disable=too-few-public-methods
     """A regular expression generated from a trie data structure.
 
-    Args:
-        trie: A `Trie` data object.
-
-    Attributes:
-        boundary: Indicates whether the regex should be surrounded by boundary ('\b') tokens.
-        capturing: Indicates whether the pattern should be in a capturing (`True`) or non-capturing (`False`) group.
-                   When value is `None` the pattern will not be grouped unless `boundary` is `True` in which case it
-                   will be made a non-capturing group so the boundary tokens apply to all items in the pattern.
-        _pattern: The regex pattern built from the trie.
+    :param trie: A `Trie` data object.
+    :param boundary: Indicates whether the regex should be surrounded by boundary ('\b') tokens.
+    :param capturing: Indicates whether the pattern should be in a capturing (`True`) or non-capturing (`False`) group.
+    When value is `None` the pattern will not be grouped unless `boundary` is `True` in which case it will be made a
+    non-capturing group so the boundary tokens apply to all items in the pattern.
     """
 
     def __init__(self, trie: Trie, boundary: bool = False, capturing: t.Optional[bool] = None):
@@ -165,12 +151,10 @@ class Regex:  # pylint: disable=too-few-public-methods
         return formatted_pattern
 
     def _construct(self, data: TrieNode, is_outer: bool = False) -> str:
-        """
-        Construct a regular expression from a trie structure.
+        """Construct a regular expression from a trie structure.
 
-        Args:
-            data: A trie data structure.
-            is_outer: Whether the method call is the outermost in the recursive stack.
+        :param data: A trie data structure.
+        :param is_outer: Whether the method call is the outermost in the recursive stack.
         """
         node = data
 
@@ -210,9 +194,8 @@ class Regex:  # pylint: disable=too-few-public-methods
     def _escape(self, char: str, char_class: bool) -> str:
         """Escape regex control characters.
 
-        Args:
-            char: The character to escape.
-            char_class: Whether `character` is part of a character class.
+        :param char: The character to escape.
+        :param char_class: Whether `character` is part of a character class.
         """
         control_chars = r"^-]\\" if char_class else r".^$*+?()[{\|"
 
@@ -224,10 +207,9 @@ class Regex:  # pylint: disable=too-few-public-methods
     def _make_alternates(self, values: list[str], is_outer: bool = False) -> str:
         """Make regex alternation (e.g., foo|bar|baz).
 
-        Args:
-            values: A list of alternate values
-            is_outer: Whether `values` are the outermost in the pattern. Inner alternations are placed in non-capturing
-                      groups.
+        :param values: A list of alternate values
+        :param is_outer: Whether `values` are the outermost in the pattern. Inner alternations are placed in
+        non-capturing groups.
         """
         if len(values) == 1:
             return values[0]
@@ -242,8 +224,7 @@ class Regex:  # pylint: disable=too-few-public-methods
     def _make_char_class(self, values: list[str]) -> str:
         """Make regex character class (e.g., [AZ123]).
 
-        Args:
-            values: A list of characters
+        :param values: A list of characters
         """
         if len(values) == 1:
             return values[0]
@@ -254,8 +235,7 @@ class Regex:  # pylint: disable=too-few-public-methods
     def _make_optional(self, value: str, count: int) -> str:
         """Make character class or alternation optional.
 
-        Args:
-            value: The partial regex pattern value
-            count: The number of non-character class alternates.
+        :param value: The partial regex pattern value
+        :param count: The number of non-character class alternates.
         """
         return rf"{value}?" if count < 1 else rf"(?:{value})?"
