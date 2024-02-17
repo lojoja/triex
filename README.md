@@ -34,7 +34,7 @@ Usage: triex [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help         Show this message and exit.
-  -v, --verbose  Increase verbosity
+  -v, --verbose  Increase verbosity.
   --version      Show the version and exit.
 
 Commands:
@@ -47,24 +47,24 @@ Commands:
 Convert:
 
 ```
-> printf "foo\nfoobar\nfoobaz\nbar\nbat" > words.txt
-> triex convert -i words.txt
+$ echo "foo\nfoobar\nfoobaz\nbar\nbat" > words.txt
+$ triex convert -i words.txt
 ba[rt]|foo(?:ba[rz])?
-> printf "foo\nfoobar\nfoobaz\nbar\nbat" | triex convert
+$ echo -e "foo\nfoobar\nfoobaz\nbar\nbat" | triex convert
 ba[rt]|foo(?:ba[rz])?
 ```
 
 Batch:
 
 ```
-> printf "foo\nbar" > words1.txt
-> printf "foo\nbaz" > words2.txt
-> triex batch *.txt
+$ printf "foo\nbar" > words1.txt
+$ printf "foo\nbaz" > words2.txt
+$ triex batch *.txt
 Converting words1.txt
 Converting words2.txt
-> less -FX words1.txt
+$ less -FX words1.txt
 bar|foo
-> less -FX words2.txt
+$ less -FX words2.txt
 baz|foo
 ```
 
