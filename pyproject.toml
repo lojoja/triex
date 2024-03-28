@@ -61,7 +61,7 @@ fail_under = 100
 show_missing = true
 
 [tool.pylint.main]
-ignore-paths = [".*/.venv/.*.py", "dist/.*.py"]
+ignore-paths = ["^(.*/)?.venv/.*$", "^(.*/)?dist/.*$"]
 load-plugins = ["pylint.extensions.mccabe"]
 
 [tool.pylint.design]
@@ -73,7 +73,7 @@ max-line-length = 120
 [tool.pyright]
 ignore = [".venv/*", "dist/*"]
 pythonVersion = "3.10"
-venv = [".venv"]
+venv = ".venv"
 venvPath = "."
 
 [tool.pytest.ini_options]
