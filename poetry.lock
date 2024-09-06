@@ -76,13 +76,13 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
 name = "clickext"
-version = "1.0.3"
+version = "1.0.4"
 description = "Extended features for the Python click library"
 optional = false
-python-versions = ">=3.10.0,<4.0.0"
+python-versions = "<4.0.0,>=3.10.0"
 files = [
-    {file = "clickext-1.0.3-py3-none-any.whl", hash = "sha256:bd84e4c307f5a60efe54501b5a9afcf1ec98b9214281d7adf37d4d1891da976f"},
-    {file = "clickext-1.0.3.tar.gz", hash = "sha256:891985857772054667168e547323c2e9bd1533266121919ee38c17d424280fde"},
+    {file = "clickext-1.0.4-py3-none-any.whl", hash = "sha256:cf5e63f9b3dc2919c5a40305f626db519a20c7d16bb6b13b11efa86be0ff76a7"},
+    {file = "clickext-1.0.4.tar.gz", hash = "sha256:66b009a3608ff8e9ef415132b4c81dafa1345b6b721d443db99b24690aac51ff"},
 ]
 
 [package.dependencies]
