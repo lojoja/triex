@@ -2,14 +2,15 @@ name: Tests
 
 on:
   push:
-    branches: [main, dev]
+    branches: [dev]
   pull_request:
-    branches: [main, dev]
+    branches: [dev]
+  workflow_call:
   workflow_dispatch:
 
 jobs:
   tests:
-    name: ${{ matrix.os }}-${{ matrix.python-version }}
+    name: Tests ${{ matrix.os }} python ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
