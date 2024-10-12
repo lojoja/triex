@@ -1,4 +1,4 @@
-# pylint: disable=missing-function-docstring,missing-module-docstring,too-many-arguments,too-many-locals
+# pylint: disable=missing-function-docstring,missing-module-docstring,too-many-arguments,too-many-locals,too-many-positional-arguments
 
 from io import BytesIO
 from pathlib import Path
