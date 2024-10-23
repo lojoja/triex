@@ -4,5 +4,5 @@ triex
 The triex public API
 """
 
-from .triex import Trie
-from .triex import Regex
+from .triex import Trie as Trie
+from .triex import Regex as Regex
