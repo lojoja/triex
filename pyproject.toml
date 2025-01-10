@@ -1,16 +1,32 @@
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry]
+[project]
 name = "py-triex"
 version = "2.0.7a0"
 description = "A tool to generate semi-minimized regular expression alternations."
+license = {text = "MIT"}
 readme = "README.md"
-license = "MIT"
-authors = ["lojoja <dev@lojoja.com>"]
+authors = [
+  { name = "lojoja", email = "<dev@lojoja.com>" }
+]
+requires-python = ">=3.10,<4"
+dependencies = [
+  "click==8.*",
+  "clickext>=1.0.1,<2"
+]
+dynamic = ["classifiers"]
+
+[project.urls]
 homepage = "https://github.com.com/lojoja/triex"
 repository = "https://github.com.com/lojoja/triex"
+"Bug Tracker" = "https://github.com/lojoja/triex/issues"
+
+[project.scripts]
+triex = "triex.cli:cli"
+
+[tool.poetry]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Operating System :: OS Independent",
@@ -22,23 +38,12 @@ packages = [
     {include = "triex"}
 ]
 
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/lojoja/triex/issues"
-
-[tool.poetry.dependencies]
-python = "^3.10.0"
-click = "^8.0.0"
-clickext = "^1.0.1"
-
 [tool.poetry.group.dev.dependencies]
 black = "^24.0.0"
 pylint = "^3.0.0"
 pyright = "^1.1.349"
 pytest = "^8.0.0"
 pytest-cov = ">=4.1,<7.0"
-
-[tool.poetry.scripts]
-triex = "triex.cli:cli"
 
 [tool.black]
 include = '\.pyi?$'
