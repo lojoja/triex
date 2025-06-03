@@ -6,7 +6,7 @@ Given a list of `str`, `int`, and `float` values, triex constructs a trie data s
 
 ## Requirements
 
-- Python 3.10.x, 3.11.x
+- Python 3.10.x - 3.13.x
 
 ## Installation
 
