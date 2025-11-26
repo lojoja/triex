@@ -39,10 +39,10 @@ packages = [
 ]
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.9.0"
-pylint = "^4.0.2"
+black = "^25.11.0"
+pylint = "^4.0.3"
 pyright = "^1.1.407"
-pytest = "^8.4.2"
+pytest = "^9.0.1"
 pytest-cov = ">=4.1,<8.0"
 
 [tool.black]
