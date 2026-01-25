@@ -25,7 +25,7 @@ def test_trie_add(values: t.Optional[str | list[str]]):
 
 
 def test_trie_invalid():
-    assert Trie([None]).invalid == [None]  # type:ignore
+    assert Trie([None]).invalid == [None]  # type: ignore
 
 
 def test_trie_members():
