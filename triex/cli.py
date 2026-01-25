@@ -14,7 +14,6 @@ from clickext import ClickextCommand, ClickextGroup, verbose_option
 
 from .triex import Trie
 
-
 __all__ = ["cli"]
 
 

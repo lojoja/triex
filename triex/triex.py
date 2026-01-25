@@ -6,7 +6,6 @@ A tool to generate semi-minimized regular expression alternations.
 
 import typing as t
 
-
 TrieNode: t.TypeAlias = dict[str, "TrieNode"]
 DataValue: t.TypeAlias = int | float | str
 DataInput: t.TypeAlias = t.Optional[t.Sequence[DataValue] | DataValue]
