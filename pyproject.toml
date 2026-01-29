@@ -89,3 +89,4 @@ filterwarnings = ["ignore:::.*pytest_cov*"]
 
 [tool.uv.build-backend]
 module-name = ["triex"]
+
