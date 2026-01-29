@@ -1,13 +1,9 @@
-"""
-triex
-
-The command-line interface for triex
-"""
+"""The command-line interface for triex."""
 
 import logging
-from pathlib import Path
 import sys
 import typing as t
+from pathlib import Path
 
 import click
 from clickext import ClickextCommand, ClickextGroup, verbose_option
@@ -49,27 +45,22 @@ logger = logging.getLogger(__package__)
 )
 @verbose_option(logger)
 def cli() -> None:
-    """A tool to generate semi-minimized regular expression alternations."""
+    """A tool to generate semi-minimized regular expression alternations."""  # noqa: D401
     logger.debug("%s started", __package__)
 
 
 @cli.command(cls=ClickextCommand)
 @click.option("--in", "-i", "in_", default="-", show_default=True, help="The input file.", type=click.File())
 @click.option("--out", "-o", "out_", default="-", show_default=True, help="The output file.", type=click.File(mode="w"))
-def convert(in_: t.IO, out_: t.IO, boundary: bool, capture: t.Optional[bool], delimiter: t.Optional[str]) -> None:
+def convert(in_: t.IO, out_: t.IO, boundary: bool, capture: bool | None, delimiter: str | None) -> None:  # noqa: FBT001
     """Convert input to a regex pattern."""
-
     logger.debug("Preparing input data")
 
-    raw_data: t.Optional[str]
-
-    if not in_.isatty():
-        raw_data = in_.read().rstrip()
-    else:
-        raw_data = None
+    raw_data: str | None = in_.read().rstrip() if not in_.isatty() else None
 
     if not raw_data:
-        raise click.ClickException("No input provided")
+        msg = "No input provided"
+        raise click.ClickException(msg)
 
     data = raw_data.split(delimiter) if delimiter else raw_data.splitlines()
 
@@ -78,7 +69,7 @@ def convert(in_: t.IO, out_: t.IO, boundary: bool, capture: t.Optional[bool], de
     logger.debug("Trie created with %s value(s)", len(trie.members))
 
     logger.debug("Generating regex")
-    regex = trie.to_regex(boundary, capture)
+    regex = trie.to_regex(boundary=boundary, capturing=capture)
 
     if out_ is not sys.stdout:
         logger.debug("Ensuring output directory exists")
@@ -99,7 +90,11 @@ def convert(in_: t.IO, out_: t.IO, boundary: bool, capture: t.Optional[bool], de
 )
 @click.argument("files", nargs=-1, type=click.Path(exists=True, dir_okay=False, path_type=Path))
 def batch(
-    suffix: str, files: tuple[Path], capture: t.Optional[bool], boundary: bool, delimiter: t.Optional[str]
+    suffix: str,
+    files: tuple[Path],
+    capture: bool | None,  # noqa: FBT001
+    boundary: bool,  # noqa: FBT001
+    delimiter: str | None,
 ) -> None:
     """Batch convert file contents to patterns.
 
@@ -107,7 +102,6 @@ def batch(
 
     source.txt > source.<suffix>.txt
     """
-
     logger.debug("Converting %s files", len(files))
 
     for file in files:
@@ -126,7 +120,7 @@ def batch(
         logger.debug("Trie created with %s value(s)", len(trie.members))
 
         logger.debug("Generating regex")
-        regex = trie.to_regex(boundary, capture)
+        regex = trie.to_regex(boundary=boundary, capturing=capture)
 
         out_ = file.with_name(f"{file.stem}.{suffix}{file.suffix}")
 

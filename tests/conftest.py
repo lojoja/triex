@@ -1,15 +1,13 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring
-
 import typing as t
 
 import pytest
 
 
 @pytest.fixture(name="build_pattern", scope="session")
-def build_pattern_fixture() -> t.Callable[[bool, t.Optional[bool]], str]:
-    """Builds a regex pattern with the given options using the `raw_values` fixture data."""
+def build_pattern_fixture() -> t.Callable[[bool, bool | None], str]:
+    """Build a regex pattern with the given options using the `raw_values` fixture data."""
 
-    def build_pattern(boundary: bool, capturing: t.Optional[bool]) -> str:
+    def build_pattern(boundary: bool, capturing: bool | None) -> str:
         pattern = r"ba[rt]|foo(?:ba[rz])?"
 
         if capturing is False or (boundary and capturing is None):
@@ -27,5 +25,5 @@ def build_pattern_fixture() -> t.Callable[[bool, t.Optional[bool]], str]:
 
 @pytest.fixture(name="raw_values", scope="session")
 def raw_values_fixture() -> list[str]:
-    """Common values to use for verifying regex patterns."""
+    """Common values to use for verifying regex patterns."""  # noqa: D401
     return ["foo", "foobar", "foobaz", "bar", "bat"]

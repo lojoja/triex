@@ -1,16 +1,14 @@
-# pylint: disable=missing-function-docstring,missing-module-docstring,too-many-arguments,too-many-locals,too-many-positional-arguments
-
+import typing as t
 from io import BytesIO
 from pathlib import Path
-import typing as t
 
-from click.testing import CliRunner
 import pytest
+from click.testing import CliRunner
 
 from triex.cli import cli
 
 
-def test_cli_version():
+def test_cli_version() -> None:
     runner = CliRunner()
     result = runner.invoke(cli, "--version")
     assert result.output.startswith("cli, version")
@@ -18,7 +16,7 @@ def test_cli_version():
 
 @pytest.mark.parametrize("short_opts", [True, False])
 @pytest.mark.parametrize("verbose", [True, False])
-def test_cli_verbosity(caplog: pytest.LogCaptureFixture, verbose: bool, short_opts: bool):
+def test_cli_verbosity(caplog: pytest.LogCaptureFixture, verbose: bool, short_opts: bool) -> None:
     runner = CliRunner()
     runner.invoke(cli, ["convert", ("-v" if short_opts else "--verbose") if verbose else ""], "foo")
     assert ("DEBUG" in caplog.text) is verbose
@@ -32,15 +30,15 @@ def test_cli_verbosity(caplog: pytest.LogCaptureFixture, verbose: bool, short_op
 @pytest.mark.parametrize("boundary", [True, False])
 def test_convert(
     tmp_path: Path,
-    build_pattern: t.Callable[[bool, t.Optional[bool]], str],
+    build_pattern: t.Callable[[bool, bool | None], str],
     raw_values: list[str],
     boundary: bool,
-    capturing: t.Optional[bool],
-    delimiter: t.Optional[str],
+    capturing: bool | None,
+    delimiter: str | None,
     stdin: bool,
     stdout: bool,
     short_opts: bool,
-):
+) -> None:
     input_file = None
     output_file = None
 
@@ -82,7 +80,7 @@ def test_convert(
 
 
 @pytest.mark.parametrize("isatty", [True, False])
-def test_convert_detects_tty(monkeypatch: pytest.MonkeyPatch, isatty: bool):
+def test_convert_detects_tty(monkeypatch: pytest.MonkeyPatch, isatty: bool) -> None:
     text = "foo\nbar"
     stream = BytesIO(text.encode())
     monkeypatch.setattr(stream, "isatty", lambda: isatty)
@@ -100,14 +98,14 @@ def test_convert_detects_tty(monkeypatch: pytest.MonkeyPatch, isatty: bool):
 @pytest.mark.parametrize("boundary", [True, False])
 def test_batch(
     tmp_path: Path,
-    build_pattern: t.Callable[[bool, t.Optional[bool]], str],
+    build_pattern: t.Callable[[bool, bool | None], str],
     raw_values: list[str],
     boundary: bool,
-    capturing: t.Optional[bool],
-    delimiter: t.Optional[str],
-    suffix: t.Optional[str],
+    capturing: bool | None,
+    delimiter: str | None,
+    suffix: str | None,
     short_opts: bool,
-):
+) -> None:
     input_files = []
     output_files = []
 
@@ -128,7 +126,7 @@ def test_batch(
     if suffix is not None:
         args.extend(["-s" if short_opts else "--suffix", suffix])
 
-    for i in range(0, 2):
+    for i in range(2):
         input_file = tmp_path / f"{i}.txt"
         input_file.write_text(input_data, encoding="utf8")
         input_files.append(input_file)
@@ -147,7 +145,7 @@ def test_batch(
         assert file.read_text(encoding="utf8") == f"{build_pattern(boundary, capturing)}\n"
 
 
-def test_batch_with_empty_file(tmp_path: Path):
+def test_batch_with_empty_file(tmp_path: Path) -> None:
     input_file = tmp_path / "in.txt"
     input_file.touch()
 

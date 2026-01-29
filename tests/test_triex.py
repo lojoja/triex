@@ -1,8 +1,6 @@
-# pylint: disable=missing-module-docstring,missing-function-docstring,protected-access
-
-from contextlib import nullcontext as does_not_raise
 import re
 import typing as t
+from contextlib import nullcontext as does_not_raise
 
 import pytest
 
@@ -10,7 +8,7 @@ from triex.triex import Regex, Trie
 
 
 @pytest.mark.parametrize("values", [None, "foo", [], ["foo", "bar", "foo"]])
-def test_trie_add(values: t.Optional[str | list[str]]):
+def test_trie_add(values: str | list[str] | None) -> None:
     if values is None:
         expected = []
     elif isinstance(values, str):
@@ -24,25 +22,25 @@ def test_trie_add(values: t.Optional[str | list[str]]):
     assert trie.members == sorted(expected)
 
 
-def test_trie_invalid():
-    assert Trie([None]).invalid == [None]  # type: ignore
+def test_trie_invalid() -> None:
+    assert Trie([None]).invalid == [None]
 
 
-def test_trie_members():
+def test_trie_members() -> None:
     assert Trie(["foo", "bar"]).members == ["bar", "foo"]
 
 
-def test_trie_structure():
+def test_trie_structure() -> None:
     assert Trie(["foo"]).structure == {"f": {"o": {"o": {"": {}}}}}
 
 
-def test_to_regex():
-    pattern = Trie(["foo", "bar"]).to_regex(True, True)
+def test_to_regex() -> None:
+    pattern = Trie(["foo", "bar"]).to_regex(boundary=True, capturing=True)
     assert pattern == r"\b(bar|foo)\b"
 
 
 @pytest.mark.parametrize("silent", [True, False])
-def test_trie__coerce(silent: bool):
+def test_trie__coerce(silent: bool) -> None:
     values = ["foo", 1, 1.0, None]
     context = does_not_raise() if silent else pytest.raises(TypeError, match=r"Cannot add value .*")
 
@@ -56,7 +54,7 @@ def test_trie__coerce(silent: bool):
         assert trie.invalid == sorted([values[-1]])
 
 
-def test_trie__insert():
+def test_trie__insert() -> None:
     values = ["foo", "bar", "baz"]
     trie = Trie()
     trie._insert(values)
@@ -65,7 +63,7 @@ def test_trie__insert():
     assert trie.structure == {"b": {"a": {"r": {"": {}}, "z": {"": {}}}}, "f": {"o": {"o": {"": {}}}}}
 
 
-def test_trie__prune():
+def test_trie__prune() -> None:
     trie = Trie(["foo"])
     new_values = ["bar", "baz"]
     result = trie._prune(new_values + trie.members)
@@ -74,14 +72,14 @@ def test_trie__prune():
 
 
 @pytest.mark.parametrize("boundary", [True, False])
-def test_regex_boundary(boundary: bool):
+def test_regex_boundary(boundary: bool) -> None:
     regex = Regex(Trie(), boundary=boundary)
     assert regex.boundary == boundary
 
 
 @pytest.mark.parametrize("capturing", [None, True, False])
 @pytest.mark.parametrize("boundary", [True, False])
-def test_regex_capturing(boundary: bool, capturing: t.Optional[bool]):
+def test_regex_capturing(boundary: bool, capturing: bool | None) -> None:
     regex = Regex(Trie(), boundary=boundary, capturing=capturing)
     assert regex.capturing == (False if boundary and capturing is None else capturing)
 
@@ -90,24 +88,24 @@ def test_regex_capturing(boundary: bool, capturing: t.Optional[bool]):
 @pytest.mark.parametrize("boundary", [True, False])
 def test_regex_pattern(
     raw_values: list[str],
-    build_pattern: t.Callable[[bool, t.Optional[bool]], str],
+    build_pattern: t.Callable[[bool, bool | None], str],
     boundary: bool,
-    capturing: t.Optional[bool],
-):
+    capturing: bool | None,
+) -> None:
     trie = Trie(raw_values)
-    regex = Regex(trie, boundary, capturing)
+    regex = Regex(trie, boundary=boundary, capturing=capturing)
 
     assert regex.pattern == build_pattern(boundary, capturing)
     assert all(re.match(regex.pattern, v) is not None for v in trie.members)
 
 
-def test_regex__construct():
+def test_regex__construct() -> None:
     trie = Trie(["foo", "bar", "ba$", "ba-", "foos", "x.y"])
     regex = Regex(trie)
     assert regex._construct(trie.structure, is_outer=True) == r"ba[$\-r]|foos?|x\.y"
 
 
-def test_regex_escape():
+def test_regex_escape() -> None:
     trie = Trie(["f.123", "f.$56"])
     regex = Regex(trie)
 
@@ -117,27 +115,27 @@ def test_regex_escape():
 
 @pytest.mark.parametrize("char_class", [True, False])
 @pytest.mark.parametrize("char", ["^", "$", "-", "\\", "|", ".", "*", "+", "(", ")", "[", "]", "{"])
-def test_regex__escape(char: str, char_class: bool):
+def test_regex__escape(char: str, char_class: bool) -> None:
     expected = rf"\{char}" if char in (r"^-]\\" if char_class else r".^$*+?()[{\|") else char
     regex = Regex(Trie())
-    assert regex._escape(char, char_class) == expected
+    assert regex._escape(char, char_class=char_class) == expected
 
 
 @pytest.mark.parametrize("outer", [True, False])
 @pytest.mark.parametrize("values", [["foo"], ["foo", "bar"]])
-def test_regex__make_alternates(values: list[str], outer: bool):
+def test_regex__make_alternates(values: list[str], outer: bool) -> None:
     expected = values[0] if len(values) == 1 else "|".join(values) if outer else rf"(?:{'|'.join(values)})"
     regex = Regex(Trie())
-    assert regex._make_alternates(values, outer) == expected
+    assert regex._make_alternates(values, is_outer=outer) == expected
 
 
 @pytest.mark.parametrize("values", [["A"], ["A", "B"]])
-def test_regex__make_char_class(values: list[str]):
+def test_regex__make_char_class(values: list[str]) -> None:
     regex = Regex(Trie())
     assert regex._make_char_class(values) == (values[0] if len(values) == 1 else rf"[{''.join(values)}]")
 
 
 @pytest.mark.parametrize("count", [0, 1])
-def test_regex__make_optional(count: int):
+def test_regex__make_optional(count: int) -> None:
     regex = Regex(Trie())
     assert regex._make_optional("foo|bar", count) == (r"foo|bar?" if count < 1 else r"(?:foo|bar)?")

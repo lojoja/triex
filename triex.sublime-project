@@ -8,12 +8,13 @@
   "settings": {
     "LSP": {
       "LSP-pylsp": {
-        "settings": {
-          "pylsp.plugins.pylint.executable": ".venv/bin/pylint"
-        }
+        "enabled": false
+      },
       },
       "LSP-ruff": {
-        "enabled": false
+        "enabled": true,
+        "command": [".venv/bin/ruff", "server"]
+      },
       },
       "ltex-ls": {
         "settings": {
