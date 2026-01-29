@@ -41,12 +41,6 @@ triex = "triex.cli:cli"
 requires = ["uv_build>=0.9.26,<0.10.0"]
 build-backend = "uv_build"
 
-[tool.black]
-include = '\.pyi?$'
-line-length = 120
-skip-magic-trailing-comma = true
-target_version = ["py310", "py311"]
-
 [tool.coverage.run]
 source = ["triex"]
 omit = ["tests/"]
@@ -60,19 +54,6 @@ exclude_lines = [
 ]
 fail_under = 100
 show_missing = true
-
-[tool.pylint.main]
-ignore-paths = ["^(.*/)?.venv/.*$", "^(.*/)?dist/.*$"]
-load-plugins = ["pylint.extensions.mccabe"]
-
-[tool.pylint.design]
-max-complexity = 15
-
-[tool.pylint.format]
-max-line-length = 120
-
-[tool.pylint.imports]
-allow-reexport-from-package = true
 
 [tool.pyright]
 ignore = [".venv/*", "dist/*"]
