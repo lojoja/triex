@@ -23,7 +23,7 @@ def test_trie_add(values: str | list[str] | None) -> None:
 
 
 def test_trie_invalid() -> None:
-    assert Trie([None]).invalid == [None]
+    assert Trie([None]).invalid == [None]  # ty:ignore[invalid-argument-type]
 
 
 def test_trie_members() -> None:
@@ -41,7 +41,7 @@ def test_to_regex() -> None:
 
 @pytest.mark.parametrize("silent", [True, False])
 def test_trie__coerce(silent: bool) -> None:
-    values = ["foo", 1, 1.0, None]
+    values: list[t.Any] = ["foo", 1, 1.0, None]
     context = does_not_raise() if silent else pytest.raises(TypeError, match=r"Cannot add value .*")
 
     trie = Trie(silent=silent)
