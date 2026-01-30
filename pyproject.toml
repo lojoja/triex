@@ -21,6 +21,14 @@ dependencies = [
   "clickext>=1.0.1,<2",
 ]
 
+[project.scripts]
+triex = "triex.cli:cli"
+
+[project.urls]
+homepage = "https://github.com.com/lojoja/triex"
+repository = "https://github.com.com/lojoja/triex"
+"Bug Tracker" = "https://github.com/lojoja/triex/issues"
+
 [build-system]
 requires = ["uv_build>=0.9.26,<0.10.0"]
 build-backend = "uv_build"
@@ -32,14 +40,6 @@ dev = [
   "ruff>=0.14.14",
   "ty>=0.0.14",
 ]
-
-[project.scripts]
-triex = "triex.cli:cli"
-
-[project.urls]
-homepage = "https://github.com.com/lojoja/triex"
-repository = "https://github.com.com/lojoja/triex"
-"Bug Tracker" = "https://github.com/lojoja/triex/issues"
 
 [tool.coverage.report]
 fail_under = 100
