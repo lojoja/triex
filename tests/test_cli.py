@@ -132,7 +132,7 @@ def test_batch(
         input_files.append(input_file)
         args.append(str(input_file))
 
-        output_file = tmp_path / f"{input_file.stem}.{suffix if suffix else 'triex'}{input_file.suffix}"
+        output_file = tmp_path / f"{input_file.stem}.{suffix or 'triex'}{input_file.suffix}"
         output_files.append(output_file)
 
     runner = CliRunner()
