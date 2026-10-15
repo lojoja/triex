@@ -88,7 +88,7 @@ def test_convert_detects_tty(monkeypatch: pytest.MonkeyPatch, isatty: bool) -> N
     runner = CliRunner()
     result = runner.invoke(cli, "convert", stream)
 
-    assert result.output == "Error: No input provided\n" if isatty else "bar|foo\n"
+    assert result.output == ("Error: No input provided\n" if isatty else "bar|foo\n")
 
 
 @pytest.mark.parametrize("short_opts", [True, False])
