@@ -30,7 +30,7 @@ repository = "https://github.com.com/lojoja/triex"
 "Bug Tracker" = "https://github.com/lojoja/triex/issues"
 
 [build-system]
-requires = ["uv_build>=0.9.26,<0.10.0"]
+requires = ["uv_build>=0.9.26,<0.14.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
